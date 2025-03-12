@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Nur Bilgi - İslami Bilgi ve İbadet Destek Platformu
 
-## Getting Started
+Nur Bilgi, kullanıcıların İslami sorularını bir AI chatbot'a sorabileceği, ilmihal bilgilerini inceleyebileceği, ezan vakitlerini görebileceği, dua ve Kur'an okuyabileceği, zikir çekebileceği, not tutabileceği ve favori ekleme gibi özellikleri barındıran bir İslami platformdur.
 
-First, run the development server:
+## Özellikler
+
+- 🤖 **İslami Chatbot**: Dini sorularınızı anında yanıtlayan yapay zeka destekli chatbot
+- 📚 **İlmihal Bilgileri**: Kapsamlı ilmihal bilgileri ve dini konularda detaylı açıklamalar
+- 🕌 **Ezan Vakitleri**: Bulunduğunuz konuma göre güncel namaz vakitleri
+- 📖 **Kur'an-ı Kerim**: Kur'an-ı Kerim'i okuyun, dinleyin ve ayetleri inceleyin
+- 🤲 **Dua ve Zikirler**: Günlük dualar, zikirler ve tesbihatlar
+- 📝 **Notlar ve Favoriler**: Kişisel notlar tutun ve favori içeriklerinizi kaydedin
+- 👤 **Kullanıcı Hesabı**: Kişiselleştirilmiş deneyim için kullanıcı hesabı oluşturma
+
+## Teknolojiler
+
+Bu proje aşağıdaki teknolojiler kullanılarak geliştirilmiştir:
+
+- [Next.js 14](https://nextjs.org/) - React framework
+- [TypeScript](https://www.typescriptlang.org/) - Tip güvenliği için
+- [Tailwind CSS](https://tailwindcss.com/) - Stil ve UI bileşenleri için
+- [Supabase](https://supabase.io/) - Backend ve veritabanı için
+
+## Kurulum
+
+Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyin:
 
 ```bash
+# Repoyu klonlayın
+git clone https://github.com/yourusername/nur-bilgi.git
+
+# Proje dizinine gidin
+cd nur-bilgi
+
+# Bağımlılıkları yükleyin
+npm install
+
+# Geliştirme sunucusunu başlatın
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tarayıcınızda [http://localhost:3000](http://localhost:3000) adresine giderek uygulamayı görüntüleyebilirsiniz.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Katkıda Bulunma
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Projeye katkıda bulunmak isterseniz:
 
-## Learn More
+1. Bu repoyu forklayın
+2. Yeni bir branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Değişikliklerinizi commit edin (`git commit -m 'Add some amazing feature'`)
+4. Branch'inize push edin (`git push origin feature/amazing-feature`)
+5. Pull Request açın
 
-To learn more about Next.js, take a look at the following resources:
+## Lisans
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## İletişim
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Sorularınız ve önerileriniz için [iletişim formumuzu](https://nur-bilgi.com/contact) kullanabilirsiniz.
