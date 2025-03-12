@@ -9,7 +9,7 @@ import {
   Dua, 
   DailyDua 
 } from "@/services/duaService";
-import { ChevronDown, ChevronUp, BookOpen, Star, Calendar, Copy } from "lucide-react";
+import { ChevronDown, ChevronUp, BookOpen, Star, Calendar, Copy, Heart } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function DuaPage() {
@@ -21,6 +21,21 @@ export default function DuaPage() {
   const [expandedDua, setExpandedDua] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  // LocalStorage'dan favorileri yükle
+  useEffect(() => {
+    const storedFavorites = localStorage.getItem('favoriteDualar');
+    if (storedFavorites) {
+      setFavorites(JSON.parse(storedFavorites));
+    }
+  }, []);
+
+  // Favorileri LocalStorage'a kaydet
+  const updateFavorites = (newFavorites: string[]) => {
+    setFavorites(newFavorites);
+    localStorage.setItem('favoriteDualar', JSON.stringify(newFavorites));
+  };
 
   useEffect(() => {
     const cats = getDuaCategories();
@@ -77,6 +92,17 @@ export default function DuaPage() {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
+  // Favorilere ekleme/çıkarma
+  const toggleFavorite = (id: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    if (favorites.includes(id)) {
+      updateFavorites(favorites.filter(favId => favId !== id));
+    } else {
+      updateFavorites([...favorites, id]);
+    }
+  };
+
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
@@ -105,9 +131,24 @@ export default function DuaPage() {
               <Calendar className="w-32 h-32" />
             </div>
             <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-4">
-                <Star className="h-5 w-5 text-yellow-300" fill="currentColor" />
-                <h2 className="text-xl font-semibold text-white">Günün Duası</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-300" fill="currentColor" />
+                  <h2 className="text-xl font-semibold text-white">Günün Duası</h2>
+                </div>
+                <span 
+                  onClick={(e) => toggleFavorite(dailyDua.id, e)}
+                  className="focus:outline-none cursor-pointer"
+                  aria-label={favorites.includes(dailyDua.id) ? "Favorilerden çıkar" : "Favorilere ekle"}
+                >
+                  <Heart 
+                    className={`h-5 w-5 ${
+                      favorites.includes(dailyDua.id) 
+                        ? "fill-red-500 text-red-500" 
+                        : "text-white hover:text-red-200"
+                    }`} 
+                  />
+                </span>
               </div>
               <h3 className="text-xl font-bold text-white mb-3">{dailyDua.title}</h3>
               
@@ -116,12 +157,12 @@ export default function DuaPage() {
                   <p className="text-right text-white text-xl font-arabic leading-relaxed tracking-wider mb-2">
                     {dailyDua.arabic}
                   </p>
-                  <button 
-                    className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 rounded-full p-1"
+                  <span 
                     onClick={() => copyToClipboard(dailyDua.arabic!, "Arapça metin")}
+                    className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 rounded-full p-1 cursor-pointer"
                   >
                     <Copy className="h-4 w-4 text-white" />
-                  </button>
+                  </span>
                 </div>
               )}
               
@@ -129,12 +170,12 @@ export default function DuaPage() {
                 <p className="text-white font-medium">
                   {dailyDua.turkishText}
                 </p>
-                <button 
-                  className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 rounded-full p-1"
+                <span 
                   onClick={() => copyToClipboard(dailyDua.turkishText, "Türkçe okunuş")}
+                  className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 rounded-full p-1 cursor-pointer"
                 >
                   <Copy className="h-4 w-4 text-white" />
-                </button>
+                </span>
               </div>
               
               {dailyDua.translation && (
@@ -229,9 +270,9 @@ export default function DuaPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-lg shadow-md overflow-hidden dark:bg-gray-800"
               >
-                <button
+                <div
                   onClick={() => toggleExpand(dua.id)}
-                  className="w-full flex items-center justify-between p-5 text-left"
+                  className="w-full flex items-center justify-between p-5 text-left cursor-pointer"
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
@@ -248,12 +289,27 @@ export default function DuaPage() {
                       </p>
                     </div>
                   </div>
-                  {expandedDua === dua.id ? (
-                    <ChevronUp className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
+                  <div className="flex items-center">
+                    <span 
+                      onClick={(e) => toggleFavorite(dua.id, e)}
+                      className="mr-3 focus:outline-none cursor-pointer"
+                      aria-label={favorites.includes(dua.id) ? "Favorilerden çıkar" : "Favorilere ekle"}
+                    >
+                      <Heart 
+                        className={`h-5 w-5 ${
+                          favorites.includes(dua.id) 
+                            ? "fill-red-500 text-red-500" 
+                            : "text-gray-400 hover:text-red-500"
+                        }`} 
+                      />
+                    </span>
+                    {expandedDua === dua.id ? (
+                      <ChevronUp className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    )}
+                  </div>
+                </div>
 
                 <AnimatePresence>
                   {expandedDua === dua.id && (
@@ -270,15 +326,15 @@ export default function DuaPage() {
                             <p className="text-right text-gray-800 text-xl font-arabic leading-relaxed tracking-wider mb-2 dark:text-gray-200">
                               {dua.arabic}
                             </p>
-                            <button 
-                              className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-100 dark:bg-gray-700 rounded-full p-1"
+                            <span 
+                              className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-100 dark:bg-gray-700 rounded-full p-1 cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 copyToClipboard(dua.arabic!, "Arapça metin");
                               }}
                             >
                               <Copy className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                            </button>
+                            </span>
                           </div>
                         )}
                         
@@ -286,15 +342,15 @@ export default function DuaPage() {
                           <p className="text-gray-800 font-medium dark:text-gray-200">
                             {dua.turkishText}
                           </p>
-                          <button 
-                            className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-100 dark:bg-gray-700 rounded-full p-1"
+                          <span 
+                            className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-100 dark:bg-gray-700 rounded-full p-1 cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               copyToClipboard(dua.turkishText, "Türkçe okunuş");
                             }}
                           >
                             <Copy className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                          </button>
+                          </span>
                         </div>
                         
                         {dua.translation && (
@@ -303,15 +359,15 @@ export default function DuaPage() {
                               <span className="font-medium">Anlamı:</span>{" "}
                               {dua.translation}
                             </p>
-                            <button 
-                              className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-100 dark:bg-gray-700 rounded-full p-1"
+                            <span 
+                              className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-100 dark:bg-gray-700 rounded-full p-1 cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 copyToClipboard(dua.translation!, "Türkçe anlamı");
                               }}
                             >
                               <Copy className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                            </button>
+                            </span>
                           </div>
                         )}
 

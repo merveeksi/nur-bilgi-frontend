@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Search, ChevronDown, BookOpen, AlertTriangle, BookMarked } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, ChevronDown, BookOpen, AlertTriangle, BookMarked, Heart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -9,6 +9,21 @@ export default function HadisPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [openHadis, setOpenHadis] = useState<Record<string, boolean>>({});
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  // LocalStorage'dan favorileri yükle
+  useEffect(() => {
+    const storedFavorites = localStorage.getItem('favoriteHadisler');
+    if (storedFavorites) {
+      setFavorites(JSON.parse(storedFavorites));
+    }
+  }, []);
+
+  // Favorileri LocalStorage'a kaydet
+  const updateFavorites = (newFavorites: string[]) => {
+    setFavorites(newFavorites);
+    localStorage.setItem('favoriteHadisler', JSON.stringify(newFavorites));
+  };
 
   // Sahih hadis kategorileri
   const hadisCategories = [
@@ -229,6 +244,17 @@ export default function HadisPage() {
     }));
   };
 
+  // Favorilere ekleme/çıkarma
+  const toggleFavorite = (id: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    if (favorites.includes(id)) {
+      updateFavorites(favorites.filter(favId => favId !== id));
+    } else {
+      updateFavorites([...favorites, id]);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 pt-6 pb-16">
       <div className="container mx-auto px-4">
@@ -327,17 +353,32 @@ export default function HadisPage() {
                       key={hadis.id}
                       className="bg-white border border-gray-100 rounded-lg overflow-hidden"
                     >
-                      <button
+                      <div
                         onClick={() => toggleHadis(hadis.id)}
-                        className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50"
+                        className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 cursor-pointer"
                       >
                         <p className="font-medium text-gray-900">{hadis.turkishText}</p>
-                        <ChevronDown
-                          className={`h-5 w-5 text-emerald-600 transition-transform ${
-                            openHadis[hadis.id] ? "transform rotate-180" : ""
-                          }`}
-                        />
-                      </button>
+                        <div className="flex items-center">
+                          <span 
+                            onClick={(e) => toggleFavorite(hadis.id, e)}
+                            className="mr-3 focus:outline-none cursor-pointer"
+                            aria-label={favorites.includes(hadis.id) ? "Favorilerden çıkar" : "Favorilere ekle"}
+                          >
+                            <Heart 
+                              className={`h-5 w-5 ${
+                                favorites.includes(hadis.id) 
+                                  ? "fill-red-500 text-red-500" 
+                                  : "text-gray-400 hover:text-red-500"
+                              }`} 
+                            />
+                          </span>
+                          <ChevronDown
+                            className={`h-5 w-5 text-emerald-600 transition-transform ${
+                              openHadis[hadis.id] ? "transform rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                      </div>
                       
                       {openHadis[hadis.id] && (
                         <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
@@ -369,9 +410,9 @@ export default function HadisPage() {
                     key={hadis.id}
                     className="bg-white border border-gray-100 rounded-lg overflow-hidden"
                   >
-                    <button
+                    <div
                       onClick={() => toggleHadis(hadis.id)}
-                      className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50"
+                      className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 cursor-pointer"
                     >
                       <div className="flex items-center">
                         <span className="bg-emerald-100 text-emerald-800 font-bold rounded-full h-8 w-8 flex items-center justify-center text-sm mr-3">
@@ -379,12 +420,27 @@ export default function HadisPage() {
                         </span>
                         <p className="font-medium text-gray-900">{hadis.turkishText.substring(0, 70)}...</p>
                       </div>
-                      <ChevronDown
-                        className={`h-5 w-5 text-emerald-600 transition-transform ${
-                          openHadis[hadis.id] ? "transform rotate-180" : ""
-                        }`}
-                      />
-                    </button>
+                      <div className="flex items-center">
+                        <span 
+                          onClick={(e) => toggleFavorite(hadis.id, e)}
+                          className="mr-3 focus:outline-none cursor-pointer"
+                          aria-label={favorites.includes(hadis.id) ? "Favorilerden çıkar" : "Favorilere ekle"}
+                        >
+                          <Heart 
+                            className={`h-5 w-5 ${
+                              favorites.includes(hadis.id) 
+                                ? "fill-red-500 text-red-500" 
+                                : "text-gray-400 hover:text-red-500"
+                            }`} 
+                          />
+                        </span>
+                        <ChevronDown
+                          className={`h-5 w-5 text-emerald-600 transition-transform ${
+                            openHadis[hadis.id] ? "transform rotate-180" : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
                     
                     {openHadis[hadis.id] && (
                       <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
@@ -416,17 +472,32 @@ export default function HadisPage() {
                     key={yanlis.id}
                     className="bg-white border border-gray-100 rounded-lg overflow-hidden"
                   >
-                    <button
+                    <div
                       onClick={() => toggleHadis(yanlis.id)}
-                      className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50"
+                      className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 cursor-pointer"
                     >
                       <p className="font-medium text-gray-900">{yanlis.title}</p>
-                      <ChevronDown
-                        className={`h-5 w-5 text-emerald-600 transition-transform ${
-                          openHadis[yanlis.id] ? "transform rotate-180" : ""
-                        }`}
-                      />
-                    </button>
+                      <div className="flex items-center">
+                        <span 
+                          onClick={(e) => toggleFavorite(yanlis.id, e)}
+                          className="mr-3 focus:outline-none cursor-pointer"
+                          aria-label={favorites.includes(yanlis.id) ? "Favorilerden çıkar" : "Favorilere ekle"}
+                        >
+                          <Heart 
+                            className={`h-5 w-5 ${
+                              favorites.includes(yanlis.id) 
+                                ? "fill-red-500 text-red-500" 
+                                : "text-gray-400 hover:text-red-500"
+                            }`} 
+                          />
+                        </span>
+                        <ChevronDown
+                          className={`h-5 w-5 text-emerald-600 transition-transform ${
+                            openHadis[yanlis.id] ? "transform rotate-180" : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
                     
                     {openHadis[yanlis.id] && (
                       <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">

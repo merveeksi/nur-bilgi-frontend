@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import Footer from '@/components/Footer'
+import SocialSidebar from '@/components/SocialSidebar'
+import ThemeSwitcher from '@/components/ThemeSwitcher'
 
 const poppins = Poppins({ 
   weight: ['300', '400', '500', '600', '700'],
@@ -20,13 +24,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <body className={poppins.className}>
-        <AuthProvider>
-          <main>
-            {children}
-          </main>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ThemeSwitcher />
+            <SocialSidebar />
+            <main>
+              {children}
+            </main>
+            <Footer />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
