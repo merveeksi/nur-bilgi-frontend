@@ -42,7 +42,7 @@ export default function NavbarDemo() {
   };
 
   return (
-    <div className="flex items-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-full shadow-md border border-gray-200 dark:border-gray-800">
+    <div className="flex items-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-full shadow-md border border-gray-200 dark:border-gray-800 mt-28 ">
       <div className="flex-1">
         <ExpandableTabs 
           tabs={tabs} 

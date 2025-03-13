@@ -10,7 +10,7 @@ export default function SSSLayout({
   return (
     <div className="min-h-screen relative">
       {/* Fixed floating navbar at the top */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-4xl px-4">
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-7xl px-4">
         <NavbarDemo />
       </div>
       

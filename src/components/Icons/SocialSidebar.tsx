@@ -2,7 +2,7 @@ import { Linkedin, Github, Instagram, Facebook, Twitter } from "lucide-react";
 
 export default function SocialSidebar() {
   return (
-    <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+    <div className="fixed right-4 top-1/2 -translate-y-1/2 z-30 flex-col gap-4 hidden md:flex">
       <a
         href="https://linkedin.com"
         target="_blank"
