@@ -1,7 +1,5 @@
 "use client";
 
-import NavbarDemo from "@/components/navbar-demo";
-
 export default function IlmihalLayout({
   children,
 }: {
@@ -9,10 +7,6 @@ export default function IlmihalLayout({
 }) {
   return (
     <div className="min-h-screen relative">
-      {/* Fixed floating navbar at the top */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-4xl px-4">
-        <NavbarDemo />
-      </div>
       
       {/* Main content */}
       <div className="pt-24">

@@ -69,41 +69,41 @@ export default function Navbar() {
   };
 
   return (
-    <header className="top-6 inset-x-0 z-40 mx-auto px-2 w-full max-w-full">
+    <header className="w-full max-w-full">
       {!showExpandableTabs ? (
-        <nav className="flex items-center justify-between backdrop-blur-md bg-emerald-600/90 w-full dark:bg-slate-900/90 rounded-2xl shadow-lg border border-slate-700/30 px-2">
+        <nav className="flex flex-wrap items-center justify-between bg-emerald-600 w-full dark:bg-emerald-700 rounded-xl shadow-lg px-3 py-2">
           {/* Logo */}
           <Logo />
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8 px-8 flex-grow justify-center">
+          <div className="hidden md:flex flex-wrap items-center space-x-1 md:space-x-3 lg:space-x-6 px-2 md:px-4 lg:px-6 flex-grow justify-center">
             {links.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-1 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-1 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap px-1 py-1 rounded-md ${
                     isActive 
-                      ? "text-yellow-500" 
-                      : "text-slate-200 hover:text-emerald-400"
+                      ? "text-white bg-emerald-500/30" 
+                      : "text-white hover:bg-emerald-500/20"
                   }`}
                 >
-                  <link.icon className="w-4 h-4" />
+                  <link.icon className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>{link.name}</span>
                 </Link>
               );
             })}
 
             {/* Auth Links */}
-            <div className="flex items-center border-l pl-6 border-slate-600/40">
+            <div className="flex items-center border-l pl-2 md:pl-4 lg:pl-6 border-white/40">
               {!isLoggedIn ? (
                 // Show login and register links if not logged in
                 authLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="flex items-center gap-1 ml-3 text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors"
+                    className="flex items-center gap-1 ml-2 md:ml-3 text-sm font-medium text-white hover:text-yellow-200 transition-colors whitespace-nowrap"
                   >
                     <link.icon className="w-4 h-4" />
                     <span>{link.name}</span>
@@ -119,7 +119,7 @@ export default function Navbar() {
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="ml-4 p-2 rounded-full hover:bg-slate-700/30 text-slate-200 border border-slate-700/40"
+                className="ml-2 md:ml-4 p-2 rounded-full hover:bg-emerald-500 text-white"
                 aria-label={theme === 'dark' ? 'Aydınlık temaya geç' : 'Karanlık temaya geç'}
               >
                 {theme === 'dark' ? (
@@ -132,7 +132,7 @@ export default function Navbar() {
               {/* Toggle tabs button */}
               <button
                 onClick={() => setShowExpandableTabs(true)}
-                className="ml-4 p-2 rounded-full hover:bg-slate-700/30 text-slate-200 border border-slate-700/40"
+                className="ml-2 md:ml-4 p-2 rounded-full hover:bg-emerald-500 text-white"
                 title="Sekmeli görünüme geç"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -148,7 +148,7 @@ export default function Navbar() {
             {/* Theme Toggle for Mobile */}
             <button
               onClick={toggleTheme}
-              className="mr-2 p-2 rounded-full hover:bg-slate-700/30 text-slate-200"
+              className="mr-2 p-2 rounded-full hover:bg-emerald-500 text-white"
               aria-label={theme === 'dark' ? 'Aydınlık temaya geç' : 'Karanlık temaya geç'}
             >
               {theme === 'dark' ? (
@@ -167,7 +167,7 @@ export default function Navbar() {
             
             <button 
               onClick={toggleMobileMenu}
-              className="text-white p-2 rounded-full hover:bg-slate-700/50"
+              className="text-white p-2 rounded-full hover:bg-emerald-500"
               aria-expanded={isMobileMenuOpen}
               aria-label="Ana menüyü açın"
             >
@@ -178,14 +178,14 @@ export default function Navbar() {
           </div>
         </nav>
       ) : (
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-full shadow-md border border-slate-200 dark:border-slate-700 p-1 flex items-center">
-          <div className="flex-1">
+        <div className="bg-emerald-600 dark:bg-emerald-700 rounded-full shadow-md p-1 flex items-center overflow-hidden">
+          <div className="flex-1 overflow-x-auto">
             <ExpandableTabs 
               tabs={tabs} 
               activeTab={activeTab}
               onChange={handleTabChange}
-              activeColor="text-emerald-500" 
-              className="border-emerald-200 dark:border-emerald-800"
+              activeColor="text-yellow-300" 
+              className="border-emerald-500 dark:border-emerald-600"
             />
           </div>
           
@@ -196,7 +196,7 @@ export default function Navbar() {
             
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200"
+              className="p-2 rounded-full hover:bg-emerald-500 text-white"
               aria-label={theme === 'dark' ? 'Aydınlık temaya geç' : 'Karanlık temaya geç'}
             >
               {theme === 'dark' ? (
@@ -208,7 +208,7 @@ export default function Navbar() {
             
             <button
               onClick={() => setShowExpandableTabs(false)}
-              className="p-2 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50 text-slate-800 dark:text-slate-200"
+              className="p-2 rounded-full hover:bg-emerald-500 text-white"
               title="Standart görünüme geç"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -223,7 +223,7 @@ export default function Navbar() {
       {/* Mobile Menu (only for standard view) */}
       {!showExpandableTabs && (
         <div 
-          className={`md:hidden absolute top-full left-0 right-0 mt-2 p-4 bg-slate-800 dark:bg-slate-900 rounded-lg shadow-lg border border-slate-700/30 transition-all duration-200 ${
+          className={`md:hidden absolute top-full left-0 right-0 mt-2 p-4 bg-emerald-600 dark:bg-emerald-700 rounded-lg shadow-lg transition-all duration-200 ${
             isMobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
           }`}
         >
@@ -237,8 +237,8 @@ export default function Navbar() {
                   onClick={closeMobileMenu}
                   className={`flex items-center space-x-2 p-2 rounded-lg ${
                     isActive 
-                      ? "bg-emerald-500/20 text-emerald-400" 
-                      : "text-slate-200 hover:bg-slate-700/50 hover:text-emerald-400"
+                      ? "bg-emerald-500/20 text-yellow-300" 
+                      : "text-white hover:bg-emerald-500/50 hover:text-yellow-200"
                   }`}
                 >
                   <link.icon className="w-5 h-5" />
@@ -250,13 +250,13 @@ export default function Navbar() {
             {/* Auth Links for Mobile */}
             {!isLoggedIn && (
               <div>
-                <div className="border-t border-slate-700 my-2"></div>
+                <div className="border-t border-white/40 my-2"></div>
                 {authLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={closeMobileMenu}
-                    className="flex items-center space-x-2 p-2 rounded-lg text-slate-200 hover:bg-slate-700/50 hover:text-emerald-400"
+                    className="flex items-center space-x-2 p-2 rounded-lg text-white hover:bg-emerald-500/50 hover:text-yellow-200"
                   >
                     <link.icon className="w-5 h-5" />
                     <span>{link.name}</span>

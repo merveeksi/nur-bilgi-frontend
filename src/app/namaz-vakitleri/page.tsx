@@ -18,18 +18,9 @@ const PrayerTimes = dynamic(() => import('./prayer-times'), {
   )
 })
 
-// Navbar bileşenini dinamik olarak import ediyoruz
-const Navbar = dynamic(() => import('@/components/navbar-demo'), {
-  ssr: false
-})
-
 export default function NamazVakitleriPage() {
   return (
     <main className="min-h-screen bg-white dark:bg-slate-900">
-      {/* Navbar */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-        <Navbar />
-      </div>
       
       {/* Main Content */}
       <div className="container mx-auto px-4 pt-24 pb-12">

@@ -27,17 +27,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" suppressHydrationWarning>
-      <body className={inter.className
-      }>
+      <body className={`${inter.className} bg-gray-50 dark:bg-slate-950`}>
         <ThemeProvider>
           <AuthProvider>
-            {/* Navbar */}
-            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-[calc(100%-2rem)]">
+            {/* Navbar - arka plan rengi ve pozisyonu düzeltildi */}
+            <div className="sticky top-0 z-50 w-full px-4 py-2">
               <Navbar />
             </div>
             
-            {/* Main content with top padding for navbar */}
-            <main className="pt-20 min-h-screen">
+            {/* Main content - üst paddingden kurtulduk */}
+            <main className="min-h-screen">
               <ThemeSwitcher />
               <SocialSidebar />
               {children}
