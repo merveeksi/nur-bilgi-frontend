@@ -26,11 +26,7 @@ const QuranReader = dynamic(() => import('./quran-reader'), {
 export default function KuranPage() {
   return (
     <main className="min-h-screen bg-white dark:bg-slate-900">
-      {/* Navbar */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-        <Navbar />
-      </div>
-      
+    
       {/* Main Content */}
       <div className="container mx-auto px-4 pt-24 pb-12">
         <h1 className="text-3xl font-bold text-center mb-8 text-emerald-800 dark:text-emerald-300">

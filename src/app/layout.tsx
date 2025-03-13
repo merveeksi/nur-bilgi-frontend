@@ -27,7 +27,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={inter.className
+      }>
         <ThemeProvider>
           <AuthProvider>
             {/* Navbar */}
@@ -36,11 +37,11 @@ export default function RootLayout({
             </div>
             
             {/* Main content with top padding for navbar */}
-            <div className="pt-24">
+            <main className="pt-20 min-h-screen">
               <ThemeSwitcher />
               <SocialSidebar />
               {children}
-            </div>
+            </main>
             <Footer />
           </AuthProvider>
         </ThemeProvider>

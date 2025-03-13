@@ -6,24 +6,6 @@ import PageSection from '@/components/ui/page-section'
 import FeatureCard from '@/components/ui/feature-card'
 
 
-// Dynamically import client components to avoid server/client mismatch
-const PrayerTimes = dynamic(() => import('./namaz-vakitleri/prayer-times'), { 
-  ssr: false,
-  loading: () => (
-    <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-md animate-pulse h-[400px]">
-      <div className="h-6 bg-gray-100 dark:bg-slate-700 rounded w-3/4 mb-4"></div>
-      <div className="space-y-3">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="flex justify-between">
-            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-1/4"></div>
-            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-1/4"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-})
-
 // AI Chatbot bileşenini dinamik olarak import ediyoruz
 const IslamicChatbot = dynamic(() => import('./chatbot/islamic-chatbot'), { 
   ssr: false,

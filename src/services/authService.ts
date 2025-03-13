@@ -6,6 +6,7 @@ interface User {
   username: string;
   name: string;
   email: string;
+  password?: string; // Made optional with ? since not all User objects need it
 }
 
 interface LoginCredentials {
@@ -26,12 +27,14 @@ const MOCK_USERS: User[] = [
     username: 'merveeksi',
     name: 'Merve Eksi',
     email: 'merve@example.com',
+    password: '123merve123!!',
   },
   {
     id: '2',
     username: 'alpgiray',
     name: 'Alp Giray',
     email: 'alp@example.com',
+    password: '123giray123!!',
   },
 ];
 
