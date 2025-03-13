@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic'
 
 // Navbar bileşenini dinamik olarak import ediyoruz
-const NavbarComponent = dynamic(() => import('@/components/navbar-demo'), {
+const Navbar = dynamic(() => import('@/components/navbar-demo'), {
   ssr: false
 })
 
@@ -28,7 +28,7 @@ export default function KuranPage() {
     <main className="min-h-screen bg-white dark:bg-slate-900">
       {/* Navbar */}
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-        <NavbarComponent />
+        <Navbar />
       </div>
       
       {/* Main Content */}
