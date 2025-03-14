@@ -178,10 +178,10 @@ export function LandingHero() {
             transition={{ duration: 0.4, ease: "easeOut", delay: 0.9 }}
           >
             <Link
-              href="/namaz-vakitleri"
+              href="/hakkimizda"
               className="px-6 py-3 border border-emerald-600 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg shadow-lg transition-colors text-sm sm:text-base"
             >
-              Namaz Vakitleri
+              Bize Ulaşın
             </Link>
           </motion.div>
         </div>

@@ -1,9 +1,6 @@
 import dynamic from 'next/dynamic'
 
-// Navbar bileşenini dinamik olarak import ediyoruz
-const NavbarComponent = dynamic(() => import('@/components/navbar-demo'), {
-  ssr: false
-})
+
 
 // AI Chatbot bileşenini dinamik olarak import ediyoruz
 const IslamicChatbot = dynamic(() => import('./islamic-chatbot'), { 
@@ -20,19 +17,29 @@ const IslamicChatbot = dynamic(() => import('./islamic-chatbot'), {
 export default function ChatbotPage() {
   return (
     <main className="min-h-screen bg-white dark:bg-slate-900">
-      {/* Navbar */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-        <NavbarComponent />
-      </div>
       
       {/* Main Content */}
       <div className="container mx-auto px-4 pt-24 pb-12">
-        <h1 className="text-3xl font-bold text-center mb-8 text-emerald-800 dark:text-emerald-300">
+        <h1 className="text-3xl font-bold text-center mb-4 text-emerald-800 dark:text-emerald-300">
           İslami Chatbot
         </h1>
         
-        <div className="max-w-3xl mx-auto">
-          <IslamicChatbot />
+        {/* Açıklama metni */}
+        <p className="text-center text-lg mb-8 text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+          İslami konularda sorularınızı yanıtlayan, Kuran ve sünnete dayalı bilgiler sunan yapay zeka asistanımız.
+        </p>
+        
+        <div className="max-w-4xl mx-auto">
+          {/* Arka plan ışık efekti */}
+          <div className="relative">
+            <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/40 via-emerald-300/40 to-emerald-500/40 rounded-2xl blur-xl opacity-70 animate-pulse"></div>
+            
+            {/* Chatbot kartı */}
+            <div className="relative border border-emerald-100 dark:border-emerald-900/30 rounded-2xl shadow-xl overflow-hidden 
+                            transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 hover:scale-[1.02]">
+              <IslamicChatbot />
+            </div>
+          </div>
         </div>
       </div>
     </main>

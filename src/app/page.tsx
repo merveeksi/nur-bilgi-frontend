@@ -4,7 +4,22 @@ import dynamic from 'next/dynamic'
 import LandingHero from '@/components/Home/landing-hero'
 import PageSection from '@/components/ui/page-section'
 import FeatureCard from '@/components/ui/feature-card'
+import { Metadata } from 'next'
 
+// Dinamik Sözler Componenti
+const DynamicQuotes = dynamic(() => import('@/components/DynamicQuotes'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex justify-center items-center h-60">
+      <div className="animate-pulse text-3xl text-emerald-600">
+        <div className="h-20 w-20 rounded-full bg-emerald-200 dark:bg-emerald-900 flex items-center justify-center">
+           ☾﷽
+
+        </div>
+      </div>
+    </div>
+  )
+});
 
 // AI Chatbot bileşenini dinamik olarak import ediyoruz
 const IslamicChatbot = dynamic(() => import('./chatbot/islamic-chatbot'), { 
@@ -53,7 +68,7 @@ const features = [
 ];
 
 // İslami Motive Edici Sözler
-const inspirationalQuotes = [
+export const inspirationalQuotes = [
   { 
     quote: "En hayırlınız, Kur'an'ı öğrenen ve öğretendir.", 
     source: "Hadis-i Şerif"
@@ -122,7 +137,7 @@ const getRandomQuote = () => {
 
 
 export default function Home() {
-  // Rastgele bir söz seç
+  // Rastgele bir söz seç - keeping this for server-side fallback
   const randomQuote = getRandomQuote();
   
   return (
@@ -167,42 +182,15 @@ export default function Home() {
         </div>
       </PageSection>
       
-      {/* İslami Motive Edici Söz Bölümü - Sade ve Zarif Tasarım */}
+      {/* İslami Motive Edici Söz Bölümü - Dinamik Değişim */}
       <section className="py-20 bg-white dark:bg-slate-900">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
-            {/* İslami Motif - Hilal ve Cami */}
-            <div className="flex justify-center mb-12">
-              <div className="text-8xl flex items-center justify-center text-black dark:text-white mb-12">
-              ☾﷽
-              </div>
-            </div>
-            
-            {/* Söz */}
-            <div className="text-center mb-12">
-              <blockquote className="text-2xl md:text-3xl text-gray-800 dark:text-gray-200 font-serif italic leading-relaxed mb-8">
-                "{randomQuote.quote}"
-              </blockquote>
-              
-              <div className="flex items-center justify-center space-x-3">
-                <span className="h-px w-12 bg-emerald-500 dark:bg-emerald-600"></span>
-                <cite className="text-emerald-700 dark:text-emerald-500 not-italic font-medium">
-                  {randomQuote.source}
-                </cite>
-                <span className="h-px w-12 bg-emerald-500 dark:bg-emerald-600"></span>
-              </div>
-            </div>
-            
-            {/* Alt Süsleme - İnce Geometrik Çizgi */}
-            <div className="flex justify-center">
-              <div className="relative w-32 h-px">
-                <div className="absolute inset-0 bg-emerald-500/60 dark:bg-emerald-600/60"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-4 h-4 rotate-45 border border-emerald-500 dark:border-emerald-600"></div>
-              </div>
-            </div>
+            <DynamicQuotes />
           </div>
         </div>
       </section>
     </main>
   )
 }
+

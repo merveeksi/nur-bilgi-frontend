@@ -29,7 +29,7 @@ export default function NamazVakitleriPage() {
         </h1>
         
         {/* Namaz vakitleri kartı - ışık efekti ve animasyon ile */}
-        <div className="max-w-md mx-auto relative">
+        <div className="max-w-4xl mx-auto relative"> {/* Genişletildi */}
           {/* Arka plan ışık efekti */}
           <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-600 rounded-lg blur-lg opacity-75 animate-pulse"></div>
           

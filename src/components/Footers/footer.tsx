@@ -207,10 +207,10 @@ export default function Footer() {
 
         {/* Telif Hakkı */}
         <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-800 mt-10 pt-6">
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-400 text-sm">
             &copy; {currentYear} Nur Bilgi. Tüm hakları saklıdır.
           </p>
-          <p className="text-gray-500 text-sm mt-2 md:mt-0">
+          <p className="text-gray-400 text-sm mt-2 md:mt-0">
             <span className="flex items-center justify-center md:justify-end">
               Sevgiyle yapıldı <Heart size={14} className="mx-1 text-red-500 fill-red-500" /> Türkiye'de
             </span>
