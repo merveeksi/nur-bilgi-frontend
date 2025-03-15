@@ -256,25 +256,25 @@ export default function HadisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 pt-6 pb-16">
+    <div className="min-h-screen bg-white pt-6 pb-16">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8 text-emerald-500">
+        <h1 className="text-3xl font-bold text-center mb-8 text-emerald-600">
           Hadisler
         </h1>
         
         <Tabs defaultValue="sahih" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="sahih" className="text-base font-medium">
+          <TabsList className="grid w-full grid-cols-3 mb-8 bg-emerald-50">
+            <TabsTrigger value="sahih" className="text-base font-medium data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
               <BookOpen className="h-4 w-4 mr-2" />
               Sahih Hadisler
             </TabsTrigger>
-            <TabsTrigger value="kirk" className="text-base font-medium">
+            <TabsTrigger value="kirk" className="text-base font-medium data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
               <BookMarked className="h-4 w-4 mr-2" />
               40 Hadis
             </TabsTrigger>
-            <TabsTrigger value="yanlislar" className="text-base font-medium">
+            <TabsTrigger value="yanlislar" className="text-base font-medium data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
               <AlertTriangle className="h-4 w-4 mr-2" />
-              Bilinen Yanlışlar
+              Doğru Bilinen Yanlışlar
             </TabsTrigger>
           </TabsList>
           
@@ -288,7 +288,7 @@ export default function HadisPage() {
                   placeholder="Hadislerde ara..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white border-gray-200"
+                  className="pl-10 bg-white text-gray-800 border-gray-400"
                 />
                 {searchTerm && (
                   <button
@@ -355,7 +355,7 @@ export default function HadisPage() {
                     >
                       <div
                         onClick={() => toggleHadis(hadis.id)}
-                        className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                        className="w-full px-6 py-4 text-left flex justify-between items-center bg-gray-100 hover:bg-gray-200 cursor-pointer"
                       >
                         <p className="font-medium text-gray-900">{hadis.turkishText}</p>
                         <div className="flex items-center">
@@ -412,7 +412,7 @@ export default function HadisPage() {
                   >
                     <div
                       onClick={() => toggleHadis(hadis.id)}
-                      className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                      className="w-full px-6 py-4 text-left flex justify-between items-center bg-gray-100 hover:bg-gray-200 cursor-pointer"
                     >
                       <div className="flex items-center">
                         <span className="bg-emerald-100 text-emerald-800 font-bold rounded-full h-8 w-8 flex items-center justify-center text-sm mr-3">
@@ -456,7 +456,7 @@ export default function HadisPage() {
             </div>
           </TabsContent>
           
-          {/* Bilinen Yanlışlar Tab */}
+          {/* Doğru Bilinen Yanlışlar Tab */}
           <TabsContent value="yanlislar" className="space-y-6">
             <div className="bg-white p-6 rounded-lg mb-6">
               <h2 className="text-xl font-bold text-emerald-700 mb-4">Hadislerle İlgili Bilinen Yanlışlar</h2>
@@ -474,7 +474,7 @@ export default function HadisPage() {
                   >
                     <div
                       onClick={() => toggleHadis(yanlis.id)}
-                      className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                      className="w-full px-6 py-4 text-left flex justify-between items-center bg-gray-100 hover:bg-gray-200 cursor-pointer"
                     >
                       <p className="font-medium text-gray-900">{yanlis.title}</p>
                       <div className="flex items-center">
@@ -521,8 +521,8 @@ export default function HadisPage() {
             <a href="/chatbot" className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors">
               Hadisler Hakkında Soru Sor
             </a>
-            <a href="/ilmihal" className="px-4 py-2 bg-white text-slate-800 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors">
-              İlmihal'e Git
+            <a href="/hakkimizda" className="px-4 py-2 bg-white text-slate-800 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors">
+              Bize Ulaşın
             </a>
           </div>
         </div>
