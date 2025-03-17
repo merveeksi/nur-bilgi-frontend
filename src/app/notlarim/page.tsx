@@ -199,7 +199,7 @@ export default function NotesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-16 px-4 dark:bg-gray-900">
+    <div className="min-h-screen text-black bg-gray-50 pt-24 pb-16 px-4 dark:bg-gray-900">
       <div className="container mx-auto max-w-6xl">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <div>
@@ -262,7 +262,7 @@ export default function NotesPage() {
                   <div className="mt-6 space-y-6">
                     {/* Category Filter */}
                     <div>
-                      <h3 className="text-sm font-medium mb-3">Kategori</h3>
+                      <h3 className="text-sm font-medium mb-3 text-gray-800">Kategori</h3>
                       <div className="flex flex-wrap gap-2">
                         <Badge
                           key="all"
@@ -276,7 +276,7 @@ export default function NotesPage() {
                           <Badge
                             key={category}
                             variant={selectedCategory === category ? "default" : "outline"}
-                            className={`cursor-pointer ${selectedCategory === category ? "bg-emerald-600" : ""}`}
+                            className={`cursor-pointer ${selectedCategory === category ? "bg-black" : ""}`}
                             onClick={() => handleCategoryChange(category)}
                           >
                             {category}
@@ -297,7 +297,7 @@ export default function NotesPage() {
                             <Badge
                               key={tag}
                               variant={selectedTags.includes(tag) ? "default" : "outline"}
-                              className={`cursor-pointer ${selectedTags.includes(tag) ? "bg-blue-600" : ""}`}
+                              className={`cursor-pointer ${selectedTags.includes(tag) ? "bg-black" : ""}`}
                               onClick={() => handleTagToggle(tag)}
                             >
                               {tag}
@@ -309,7 +309,7 @@ export default function NotesPage() {
                     
                     {/* Sort Options */}
                     <div>
-                      <h3 className="text-sm font-medium mb-3">Sıralama</h3>
+                      <h3 className="text-sm font-medium mb-3 text-gray-800">Sıralama</h3>
                       <Select 
                         value={`${sortBy}-${sortDirection}`}
                         onValueChange={handleSortChange}
@@ -330,12 +330,12 @@ export default function NotesPage() {
                     
                     {/* View Mode */}
                     <div>
-                      <h3 className="text-sm font-medium mb-3">Görünüm</h3>
+                      <h3 className="text-sm font-medium mb-3 text-gray-800">Görünüm</h3>
                       <div className="flex space-x-2">
                         <Button 
                           variant={viewMode === 'grid' ? "default" : "outline"}
                           size="sm"
-                          className="flex-1"
+                          className="flex-1 text-gray-800 hover:text-white hover:bg-emerald-600"
                           onClick={() => setViewMode('grid')}
                         >
                           Izgara
@@ -343,7 +343,7 @@ export default function NotesPage() {
                         <Button 
                           variant={viewMode === 'list' ? "default" : "outline"}
                           size="sm"
-                          className="flex-1"
+                          className="flex-1 text-gray-800 hover:text-white hover:bg-emerald-600"
                           onClick={() => setViewMode('list')}
                         >
                           Liste
@@ -472,8 +472,8 @@ export default function NotesPage() {
                     animate="visible"
                     exit="exit"
                     layout
-                    className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden 
-                      ${note.color || ''} relative group border border-gray-200 dark:border-gray-700`}
+                    className={`rounded-lg shadow-md overflow-hidden relative group border border-gray-200 dark:border-gray-700 
+                      ${note.color ? note.color : 'bg-white dark:bg-gray-800'}`}
                   >
                     <div className="p-5">
                       <div className="flex justify-between items-start mb-3">
@@ -497,7 +497,7 @@ export default function NotesPage() {
                           
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                              <button className="text-gray-800 hover:text-gray-700 dark:hover:text-gray-300">
                                 <SlidersHorizontal className="h-4 w-4" />
                               </button>
                             </DropdownMenuTrigger>
@@ -580,8 +580,8 @@ export default function NotesPage() {
                     animate="visible"
                     exit="exit"
                     layout
-                    className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden 
-                      ${note.color || ''} relative group border border-gray-200 dark:border-gray-700`}
+                    className={`rounded-lg shadow-sm overflow-hidden relative group border border-gray-200 dark:border-gray-700
+                      ${note.color ? note.color : 'bg-white dark:bg-gray-800'}`}
                   >
                     <div className="p-4">
                       <div className="flex justify-between items-start">

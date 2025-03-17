@@ -47,11 +47,15 @@ import {
   Note
 } from "@/services/notesService";
 
-export default function NotePage() {
+interface NotePageProps {
+  forceIsNew?: boolean;
+}
+
+export default function NotePage({ forceIsNew }: NotePageProps) {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const isNew = id === "yeni";
+  const isNew = forceIsNew || id === "yeni";
 
   const [note, setNote] = useState<Partial<Note>>({
     title: "",
@@ -59,7 +63,9 @@ export default function NotePage() {
     category: "Genel",
     tags: [],
     isPinned: false,
-    color: ""
+    color: "text-gray-800",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
   
   const [categories, setCategories] = useState<string[]>([]);
@@ -102,6 +108,10 @@ export default function NotePage() {
   };
 
   const handleCategoryChange = (value: string) => {
+    if (value === "__add_new__") {
+      setShowAddCategory(true);
+      return;
+    }
     setNote(prev => ({ ...prev, category: value }));
   };
 
@@ -148,10 +158,11 @@ export default function NotePage() {
   };
 
   const saveNote = async () => {
-    if (!note.title || !note.content) {
+    // Check if both title and content are empty
+    if (!note.title?.trim() && !note.content?.trim()) {
       setSaveMessage({
         type: "error",
-        text: "Başlık ve içerik alanları gereklidir"
+        text: "Not başlığı veya içerik alanlarından en az birini doldurmalısınız"
       });
       return;
     }
@@ -162,8 +173,8 @@ export default function NotePage() {
       if (isNew) {
         // Create new note
         const newNote = addNote({
-          title: note.title,
-          content: note.content,
+          title: note.title?.trim() || "Başlıksız Not",
+          content: note.content?.trim() || "",
           category: note.category || "Genel",
           tags: note.tags || [],
           isPinned: note.isPinned || false,
@@ -175,16 +186,19 @@ export default function NotePage() {
         // Show success message
         setSaveMessage({
           type: "success",
-          text: "Not başarıyla oluşturuldu"
+          text: "Not başarıyla oluşturuldu",
         });
         
-        // Redirect to edit page after creation
-        router.push(`/notlarim/${newNote.id}`);
+        // Delay redirect slightly to ensure localStorage is synchronized
+        setTimeout(() => {
+          // Redirect to edit page after creation
+          router.push(`/notlarim/${newNote.id}`);
+        }, 100);
       } else {
         // Update existing note
         const updatedNote = updateNote(id, {
-          title: note.title,
-          content: note.content,
+          title: note.title?.trim() || "Başlıksız Not",
+          content: note.content?.trim() || "",
           category: note.category,
           tags: note.tags,
           isPinned: note.isPinned,
@@ -195,7 +209,7 @@ export default function NotePage() {
           // Show success message
           setSaveMessage({
             type: "success",
-            text: "Not başarıyla güncellendi"
+            text: "Not başarıyla güncellendi",
           });
         } else {
           // Show error message
@@ -246,9 +260,9 @@ export default function NotePage() {
               variant="ghost" 
               size="sm" 
               onClick={goBack} 
-              className="mr-2"
+              className="mr-2 text-gray-800"
             >
-              <ArrowLeft className="h-5 w-5 mr-1" />
+              <ArrowLeft className="h-5 w-5 mr-1 text-gray-800 " />
               Geri
             </Button>
             <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
@@ -303,7 +317,9 @@ export default function NotePage() {
         )}
         
         {/* Main content */}
-        <div className={`bg-white rounded-lg shadow-md overflow-hidden dark:bg-gray-800 ${note.color}`}>
+        <div className={`rounded-lg shadow-md overflow-hidden ${
+          note.color ? note.color : 'bg-white dark:bg-gray-800'
+        }`}>
           {/* Note Metadata */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
@@ -313,7 +329,7 @@ export default function NotePage() {
                   value={note.title || ""}
                   onChange={handleInputChange}
                   placeholder="Not başlığı"
-                  className="text-lg font-medium border-0 p-0 focus-visible:ring-0 dark:bg-transparent"
+                  className="text-lg text-gray-800 font-medium border-0 p-0 focus-visible:ring-0 dark:bg-transparent"
                 />
               </div>
               
@@ -325,7 +341,7 @@ export default function NotePage() {
                         variant={note.isPinned ? "default" : "outline"} 
                         size="sm" 
                         onClick={togglePin}
-                        className={note.isPinned ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+                        className={note.isPinned ? "bg-black hover:bg-gray-800" : ""}
                       >
                         {note.isPinned ? "Sabitlendi" : "Sabitle"}
                       </Button>
@@ -356,7 +372,7 @@ export default function NotePage() {
                               />
                               <Label 
                                 htmlFor={colorOption.value}
-                                className={`flex-1 cursor-pointer rounded-md p-2 text-xs peer-data-[state=checked]:ring-2 peer-data-[state=checked]:ring-emerald-600 ${colorOption.value}`}
+                                className={`flex-1 cursor-pointer rounded-md p-2 text-xs peer-data-[state=checked]:ring-2 peer-data-[state=checked]:ring-black ${colorOption.value}`}
                               >
                                 {colorOption.name}
                               </Label>

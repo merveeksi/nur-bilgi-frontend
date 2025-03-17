@@ -206,5 +206,13 @@ export const sortNotes = (
 const saveNotes = (notes: Note[]): void => {
   if (typeof window === 'undefined') return;
   
-  localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+  try {
+    localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+    
+    // Dispatch a custom event to signal that notes have been updated
+    // This can be useful for synchronizing state across components
+    window.dispatchEvent(new CustomEvent('notes-updated'));
+  } catch (error) {
+    console.error('Error saving notes to localStorage:', error);
+  }
 }; 

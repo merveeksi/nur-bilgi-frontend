@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import dynamic from "next/dynamic";
 
 // Dinamik olarak yükle çünkü zengin metin editörü window nesnesine bağlı
@@ -12,5 +11,6 @@ const NoteEditor = dynamic(() => import("../[id]/page"), {
 });
 
 export default function NewNotePage() {
-  return <NoteEditor />;
+  // Force isNew flag to true by passing custom props
+  return <NoteEditor forceIsNew={true} />;
 } 
