@@ -58,7 +58,7 @@ export default function UserProfileMenu() {
 
           <div className="py-1">
             <Link
-              href="/profil"
+              href="/profilim"
               className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -66,7 +66,7 @@ export default function UserProfileMenu() {
               Profilim
             </Link>
             <Link
-              href="/ayarlar"
+              href="/profilim/ayarlar"
               className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => setIsMenuOpen(false)}
             >
