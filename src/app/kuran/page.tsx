@@ -2,10 +2,18 @@
 
 import dynamic from 'next/dynamic'
 import { useState, useEffect, useRef } from 'react'
-import { Bookmark, BookmarkCheck } from 'lucide-react'
-import Image from 'next/image'
+import { BookmarkCheck } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useMediaQuery } from "@/hooks/use-media-query"
+import CuzOverview from './cuz-overview'
+import { Suspense } from 'react'
 
-// ----- Tipler -----
+// Import types but not the actual component (will be lazy loaded)
+import type { QuranReaderMethods } from './quran-reader'
+
+// Define simplified types for the QuranReader data
 interface Verse {
   number: number;
   arabic: string;
@@ -17,540 +25,340 @@ interface Surah {
   name: string;
   arabicName: string;
   versesCount: number;
-  revelationType: string;
   verses: Verse[];
 }
 
-// QuranReader bileşeninden dışarı açılan metodlar
-interface QuranReaderMethods {
-  fetchSurahDetail: (surah: Surah) => Promise<void>;
-  changeTranslation: (translationId: string) => Promise<void>;
-  navigateToPage: (pageNumber: number) => Promise<void>;
-  scrollToAyah: (verseNumber: number) => void;
+interface QuranReaderData {
+  surahs: Surah[];
+  selectedSurah: Surah | null;
+  loading: boolean;
+  errorMessage: string | null;
 }
 
-// Yer imi tipi
-interface BookmarkItem {
-  id: string;
-  page: number;
-  surahId: number;
-  verse: number;
-  title: string;
-  addedAt: Date;
-}
-
-// Navbar'ı ve QuranReader'ı dinamik import
-const Navbar = dynamic(() => import('@/components/navbar-demo'), { ssr: false })
-const QuranReader = dynamic(() => import('./quran-reader'), { 
+// Lazy load the QuranReader component with proper forwardRef support
+const LazyQuranReader = dynamic(() => import('./quran-reader'), {
   ssr: false,
   loading: () => (
-    <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-md animate-pulse h-[500px]">
-      <div className="h-8 bg-gray-100 dark:bg-slate-700 rounded w-3/4 mb-6"></div>
-      <div className="space-y-6">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="space-y-2">
-            <div className="h-6 bg-gray-100 dark:bg-slate-700 rounded w-full"></div>
-            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-5/6"></div>
-          </div>
-        ))}
-      </div>
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
     </div>
-  )
+  ),
 })
 
-// Örnek kâriler (Quran.com v4 API'de karşılıkları)
+// Render fallback while loading
+function QuranReaderLoading() {
+  return (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+  )
+}
+
+// Mealler
+const translations = [
+  { id: "105", name: "Elmalılı (Yazır) Meali" },
+  { id: "77", name: "Diyanet Meali" },
+  { id: "81", name: "Yıldırım Meali" },
+  { id: "31", name: "Edip Yüksel Meali" },
+]
+
+// Kâriler
 const qaris = [
   { id: 7, name: "Mishary Rashid Alafasy" },
   { id: 1, name: "Abdul Rahman Al-Sudais" },
   { id: 10, name: "Saud Al-Shuraim" },
-];
-
-// Mealler
-const translations = [
-  { id: "22", name: "Elmalılı (Yazır) Meali" },  // Quran.com API v4 ID'si
-  { id: "77", name: "Diyanet Meali" },           // Quran.com API v4 ID'si
-  { id: "81", name: "Yıldırım Meali" },          // Quran.com API v4 ID'si
-  { id: "31", name: "Edip Yüksel Meali" },       // Quran.com API v4 ID'si
-];
+]
 
 export default function KuranPage() {
-  // ----- State'ler -----
-  const [surahs, setSurahs] = useState<Surah[]>([]);
-  const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [currentAyah, setCurrentAyah] = useState(1);
-  const [selectedQari, setSelectedQari] = useState(qaris[2].id);
-  const [selectedTranslation, setSelectedTranslation] = useState(translations[0].id);
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [isQuranReaderInitialized, setIsQuranReaderInitialized] = useState(false);
-  const [jumpToPageInput, setJumpToPageInput] = useState('');
-  const [showQuickNav, setShowQuickNav] = useState(false);
-  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
-  const [showBookmarks, setShowBookmarks] = useState(false);
-
-  // QuranReader ref
-  const quranReaderRef = useRef<QuranReaderMethods>(null);
-
-  // Toplam sayfa (mushaf formatı)
-  const totalPages = 620;
-
-  // ----- Audio Ref ve URL -----
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // sayfa yüklenince audio elementi hazırlıyoruz
-  useEffect(() => {
-    if (!audioRef.current) {
-      const newAudio = new Audio();
-      audioRef.current = newAudio;
-      // Oynatma/duraklatma durumunu yakalamak için
-      newAudio.onplay = () => setIsAudioPlaying(true);
-      newAudio.onpause = () => setIsAudioPlaying(false);
-    }
-  }, []);
-
-  // Seçilen kâri, sure, sayfa vb. değiştiğinde audio URL (örnek) hesapla
-  useEffect(() => {
-    if (!audioRef.current) return;
-    if (!selectedSurah) {
-      audioRef.current.src = '';
-      return;
-    }
-
-    // Quran.com v4 API'den ses URL'i
-    // Not: sayfa yerine sure:ayet formatını kullanıyoruz
-    // Sayfa başlangıç ayetini kullanıyoruz
-    if (selectedSurah && currentAyah) {
-      const audioUrl = `https://api.quran.com/api/v4/recitations/${selectedQari}/by_ayah/${selectedSurah.id}:${currentAyah}`;
-      audioRef.current.src = audioUrl;
-    }
-  }, [selectedQari, selectedSurah, currentAyah, currentPage]);
-
-  // Audio aç/kapa
-  const toggleAudio = () => {
-    if (!audioRef.current) return;
-    if (audioRef.current.paused) {
-      audioRef.current.play();
-    } else {
-      audioRef.current.pause();
-    }
-  };
-
-  // localStorage'den yer imlerini yükle
-  useEffect(() => {
-    const savedBookmarks = localStorage.getItem('quran-bookmarks');
-    if (savedBookmarks) {
-      try {
-        const parsedBookmarks = JSON.parse(savedBookmarks);
-        setBookmarks(parsedBookmarks);
-      } catch (e) {
-        console.error('Yer imleri yüklenirken hata:', e);
-      }
-    }
-  }, []);
-
-  // QuranReader'dan gelen verileri izleme
-  const handleQuranReaderData = (data: {
-    surahs: Surah[];
-    selectedSurah: Surah | null;
-    loading: boolean;
-    errorMessage: string | null;
-  }) => {
-    if (data) {
-      setSurahs(data.surahs || []);
-      setSelectedSurah(data.selectedSurah);
-      setLoading(data.loading);
-      setErrorMessage(data.errorMessage);
-      setIsQuranReaderInitialized(true);
-    }
-  };
-
-  // Seçili ayet değiştiğinde QuranReader'a kaydırma komutu gönder
-  useEffect(() => {
-    if (quranReaderRef.current && selectedSurah) {
-      quranReaderRef.current.scrollToAyah(currentAyah);
-    }
-  }, [currentAyah, selectedSurah]);
-
-  // Belirli bir sayfaya git
+  // States
+  const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [selectedTranslation, setSelectedTranslation] = useState(translations[0].id)
+  const [selectedQari, setSelectedQari] = useState(qaris[0].id)
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
+  const [viewMode, setViewMode] = useState<"mushaf" | "cuz">("mushaf")
+  
+  // Total pages
+  const totalPages = 604
+  
+  // Media query for responsive design
+  const isDesktop = useMediaQuery("(min-width: 768px)")
+  
+  // Add states for QuranReader functionality
+  const [surahs, setSurahs] = useState<Surah[]>([])
+  const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  
+  // Create a ref to hold the QuranReader methods
+  const quranReaderRef = useRef<QuranReaderMethods | null>(null)
+  
+  // Function to handle data updates from QuranReader
+  const handleQuranReaderData = (data: QuranReaderData) => {
+    setSurahs(data.surahs || [])
+    setSelectedSurah(data.selectedSurah)
+    setLoading(data.loading)
+    setErrorMessage(data.errorMessage)
+  }
+  
+  // Navigation functions
   const setPageAndNavigate = (pageNumber: number) => {
-    if (pageNumber < 1 || pageNumber > totalPages) return;
-    setCurrentPage(pageNumber);
-
-    // QuranReader'da sayfa navigasyonu
+    if (pageNumber < 1 || pageNumber > totalPages) return
+    setCurrentPage(pageNumber)
+    
+    // Update QuranReader if it's initialized
     if (quranReaderRef.current) {
-      quranReaderRef.current.navigateToPage(pageNumber);
+      quranReaderRef.current.navigateToPage(pageNumber)
     }
-  };
-
+  }
+  
   const goToPreviousPage = () => {
     if (currentPage > 1) {
-      setPageAndNavigate(currentPage - 1);
+      setPageAndNavigate(currentPage - 1)
     }
-  };
-
+  }
+  
   const goToNextPage = () => {
     if (currentPage < totalPages) {
-      setPageAndNavigate(currentPage + 1);
+      setPageAndNavigate(currentPage + 1)
     }
-  };
-
-  // Sure değiştirme
-  const handleSurahChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const surahId = Number(e.target.value);
-    const surahToSelect = surahs.find(s => s.id === surahId);
-    
-    if (surahToSelect && quranReaderRef.current) {
-      quranReaderRef.current.fetchSurahDetail(surahToSelect);
-    }
-  };
-
-  // Meal değiştirme
-  const handleTranslationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const translationId = e.target.value;
-    setSelectedTranslation(translationId);
-    if (quranReaderRef.current) {
-      quranReaderRef.current.changeTranslation(translationId);
-    }
-  };
-
-  // Belirli bir sayfaya hızlı git
-  const handleJumpToPage = () => {
-    const pageNumber = parseInt(jumpToPageInput);
-    if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
-      alert(`Lütfen 1-${totalPages} arasında bir sayfa numarası girin.`);
-      return;
-    }
-    setPageAndNavigate(pageNumber);
-    setJumpToPageInput('');
-    setShowQuickNav(false);
-  };
-
-  // 10'ar sayfa atlama
+  }
+  
   const jumpMultiplePages = (increment: number) => {
-    const newPage = Math.max(1, Math.min(totalPages, currentPage + increment));
-    setPageAndNavigate(newPage);
-  };
-
-  // Yer imi ekle/kaldır
-  const toggleBookmark = () => {
-    const existingBookmarkIndex = bookmarks.findIndex(b => b.page === currentPage);
+    const newPage = Math.max(1, Math.min(totalPages, currentPage + increment))
+    setPageAndNavigate(newPage)
+  }
+  
+  // Translation change
+  const handleTranslationChange = (value: string) => {
+    setSelectedTranslation(value)
     
-    if (existingBookmarkIndex !== -1) {
-      // Zaten ekli, kaldır
-      const updatedBookmarks = [...bookmarks];
-      updatedBookmarks.splice(existingBookmarkIndex, 1);
-      setBookmarks(updatedBookmarks);
-      localStorage.setItem('quran-bookmarks', JSON.stringify(updatedBookmarks));
-    } else {
-      // Yeni ekle
-      const newBookmark: BookmarkItem = {
-        id: `bookmark-${Date.now()}`,
-        page: currentPage,
-        surahId: selectedSurah?.id || 1,
-        verse: currentAyah,
-        title: selectedSurah 
-          ? `${selectedSurah.name} - Sayfa ${currentPage}` 
-          : `Sayfa ${currentPage}`,
-        addedAt: new Date()
-      };
-      const updatedBookmarks = [...bookmarks, newBookmark];
-      setBookmarks(updatedBookmarks);
-      localStorage.setItem('quran-bookmarks', JSON.stringify(updatedBookmarks));
+    // Update QuranReader translation
+    if (quranReaderRef.current) {
+      quranReaderRef.current.changeTranslation(parseInt(value, 10))
     }
-  };
-
-  // Yer imine git
-  const jumpToBookmark = (bookmark: BookmarkItem) => {
-    setPageAndNavigate(bookmark.page);
-    setShowBookmarks(false);
-  };
-
-  const removeBookmark = (bookmarkId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    const updatedBookmarks = bookmarks.filter(b => b.id !== bookmarkId);
-    setBookmarks(updatedBookmarks);
-    localStorage.setItem('quran-bookmarks', JSON.stringify(updatedBookmarks));
-  };
-
-  const isCurrentPageBookmarked = bookmarks.some(b => b.page === currentPage);
-
-  // Tam ekran örneği (opsiyonel)
+  }
+  
+  // Full screen toggle
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => {
-        console.log(`Hata: ${err.message}`);
-      });
+        console.log(`Error: ${err.message}`)
+      })
     } else {
       if (document.exitFullscreen) {
-        document.exitFullscreen();
+        document.exitFullscreen()
       }
     }
-  };
-
+  }
+  
+  // Audio toggle - update this function to use QuranReader's audio functionality
+  const toggleAudio = () => {
+    setIsAudioPlaying(!isAudioPlaying)
+    
+    // Use the current surah and verse from QuranReader
+    if (quranReaderRef.current && selectedSurah) {
+      const verseNumber = 1; // Default to first verse if not specified
+      quranReaderRef.current.playVerseAudio(selectedSurah.id, verseNumber);
+    }
+  }
+  
+  // Handle surah selection
+  const handleSurahSelection = (surahId: number, verseNumber?: number) => {
+    setViewMode("mushaf")
+    
+    // Use QuranReader to fetch surah if it's initialized
+    if (quranReaderRef.current) {
+      quranReaderRef.current.fetchSurahDetail(surahId).then(() => {
+        // Scroll to specific verse if provided
+        if (verseNumber && quranReaderRef.current) {
+          quranReaderRef.current.scrollToAyah(verseNumber)
+        }
+      })
+    }
+  }
+  
   return (
     <main className="min-h-screen bg-[#f9f8f4] dark:bg-slate-900">
-      {/* ÜST NAVIGATION BAR */}
+      {/* Top Navigation Bar */}
       <div className="bg-emerald-700 text-white p-3 sticky top-0 z-10 shadow-md">
         <div className="container mx-auto flex flex-wrap items-center justify-between">
           <h1 className="text-2xl font-bold uppercase tracking-wide">
             KUR'AN-I KERİM
           </h1>
-
-          {!loading && (
-            <div className="flex items-center space-x-2">
-              {/* Sure Seçimi */}
-              <select
-                className="bg-emerald-600 text-white border border-emerald-500 rounded px-2 py-1"
-                value={selectedSurah?.id || 1}
-                onChange={handleSurahChange}
-                disabled={loading}
-              >
-                {surahs.map(surah => (
-                  <option key={surah.id} value={surah.id}>
-                    {surah.id}. {surah.name}
-                  </option>
-                ))}
-              </select>
-
-              {/* Ayet Seçimi */}
-              <select
-                className="bg-emerald-600 text-white border border-emerald-500 rounded px-2 py-1"
-                value={currentAyah}
-                onChange={(e) => setCurrentAyah(Number(e.target.value))}
-                disabled={loading || !selectedSurah}
-              >
-                {selectedSurah && [...Array(selectedSurah.versesCount)].map((_, i) => (
-                  <option key={i+1} value={i+1}>
-                    {i+1}. Ayet
-                  </option>
-                ))}
-              </select>
-
-              {/* SAYFA GEZİNTİ BUTONLARI */}
-              <div className="flex items-center space-x-1">
-                <button
-                  onClick={() => setPageAndNavigate(1)}
-                  disabled={currentPage <= 1 || loading}
-                  className="bg-emerald-600 text-white px-2 py-1 rounded-l disabled:opacity-50"
-                  title="İlk Sayfa"
-                >
-                  ◀◀
-                </button>
-                <button
-                  onClick={() => jumpMultiplePages(-10)}
-                  disabled={currentPage <= 1 || loading}
-                  className="bg-emerald-600 text-white px-2 py-1 disabled:opacity-50"
-                  title="10 Sayfa Geri"
-                >
-                  -10
-                </button>
-                <button
-                  onClick={goToPreviousPage}
-                  disabled={currentPage <= 1 || loading}
-                  className="bg-emerald-600 text-white px-2 py-1 disabled:opacity-50"
-                >
-                  ◀
-                </button>
-
-                <button
-                  onClick={() => setShowQuickNav(!showQuickNav)}
-                  className="bg-emerald-600 px-3 py-1 border-x border-emerald-500 hover:bg-emerald-500 transition-colors"
-                >
-                  {currentPage} / {totalPages}
-                </button>
-
-                <button
-                  onClick={goToNextPage}
-                  disabled={currentPage >= totalPages || loading}
-                  className="bg-emerald-600 text-white px-2 py-1 disabled:opacity-50"
-                >
-                  ▶
-                </button>
-                <button
-                  onClick={() => jumpMultiplePages(10)}
-                  disabled={currentPage >= totalPages || loading}
-                  className="bg-emerald-600 text-white px-2 py-1 disabled:opacity-50"
-                  title="10 Sayfa İleri"
-                >
-                  +10
-                </button>
-                <button
-                  onClick={() => setPageAndNavigate(totalPages)}
-                  disabled={currentPage >= totalPages || loading}
-                  className="bg-emerald-600 text-white px-2 py-1 rounded-r disabled:opacity-50"
-                  title="Son Sayfa"
-                >
-                  ▶▶
-                </button>
-              </div>
-
-              {/* Meal Seçimi */}
-              <select
-                className="bg-emerald-600 text-white border border-emerald-500 rounded px-2 py-1"
-                value={selectedTranslation}
-                onChange={handleTranslationChange}
-                disabled={loading}
-              >
+          
+          <div className="flex items-center space-x-2">
+            {/* Translation Selection */}
+            <Select 
+              value={selectedTranslation}
+              onValueChange={handleTranslationChange}
+            >
+              <SelectTrigger className="bg-emerald-600 text-white border border-emerald-500 h-9 py-1 px-3 w-auto min-w-[180px]">
+                <SelectValue placeholder="Meal seçin" />
+              </SelectTrigger>
+              <SelectContent>
                 {translations.map(translation => (
-                  <option key={translation.id} value={translation.id}>
+                  <SelectItem key={translation.id} value={translation.id}>
                     {translation.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-
-              {/* Yer İmi Butonu */}
+              </SelectContent>
+            </Select>
+            
+            {/* Page Navigation */}
+            <div className="flex items-center space-x-1">
               <button
-                onClick={toggleBookmark}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded"
-                title={isCurrentPageBookmarked ? "Yer İmini Kaldır" : "Yer İmi Ekle"}
+                onClick={() => setPageAndNavigate(1)}
+                disabled={currentPage <= 1 || loading}
+                className="bg-emerald-600 text-white px-2 py-1 rounded-l disabled:opacity-50"
+                title="İlk Sayfa"
               >
-                {isCurrentPageBookmarked ? (
-                  <BookmarkCheck className="w-5 h-5" />
-                ) : (
-                  <Bookmark className="w-5 h-5" />
-                )}
+                ◀◀
               </button>
-
-              {/* Yer İmleri Aç */}
               <button
-                onClick={() => setShowBookmarks(!showBookmarks)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded"
+                onClick={() => jumpMultiplePages(-10)}
+                disabled={currentPage <= 1 || loading}
+                className="bg-emerald-600 text-white px-2 py-1 disabled:opacity-50"
+                title="10 Sayfa Geri"
               >
-                Yer İmleri ({bookmarks.length})
+                -10
               </button>
-            </div>
-          )}
-        </div>
-
-        {/* Hızlı Sayfa Geçiş */}
-        {showQuickNav && (
-          <div className="absolute top-full left-0 right-0 bg-emerald-700 border-t border-emerald-600 p-3 shadow-md z-20">
-            <div className="flex justify-center items-center space-x-2">
-              <span className="text-white">Sayfaya Git:</span>
-              <input
-                type="number"
-                min="1"
-                max={totalPages}
-                value={jumpToPageInput}
-                onChange={(e) => setJumpToPageInput(e.target.value)}
-                className="bg-white text-emerald-800 border border-emerald-400 rounded px-3 py-1 w-20 text-center"
-                placeholder="1-620"
-              />
               <button
-                onClick={handleJumpToPage}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded"
+                onClick={goToPreviousPage}
+                disabled={currentPage <= 1 || loading}
+                className="bg-emerald-600 text-white px-2 py-1 disabled:opacity-50"
               >
-                Git
+                ◀
               </button>
-
-              {/* Sık kullanılan sayfa kısayolları (opsiyonel) */}
-              <div className="flex space-x-1 ml-4">
-                {[1, 100, 200, 300, 400, 500, 600].map(page => (
-                  <button
-                    key={page}
-                    onClick={() => {
-                      setPageAndNavigate(page);
-                      setShowQuickNav(false);
-                    }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded text-sm"
-                  >
-                    {page}
-                  </button>
-                ))}
+              
+              <div className="bg-emerald-600 px-3 py-1 border-x border-emerald-500">
+                {currentPage} / {totalPages}
               </div>
+              
+              <button
+                onClick={goToNextPage}
+                disabled={currentPage >= totalPages || loading}
+                className="bg-emerald-600 text-white px-2 py-1 disabled:opacity-50"
+              >
+                ▶
+              </button>
+              <button
+                onClick={() => jumpMultiplePages(10)}
+                disabled={currentPage >= totalPages || loading}
+                className="bg-emerald-600 text-white px-2 py-1 disabled:opacity-50"
+                title="10 Sayfa İleri"
+              >
+                +10
+              </button>
+              <button
+                onClick={() => setPageAndNavigate(totalPages)}
+                disabled={currentPage >= totalPages || loading}
+                className="bg-emerald-600 text-white px-2 py-1 rounded-r disabled:opacity-50"
+                title="Son Sayfa"
+              >
+                ▶▶
+              </button>
             </div>
+            
+            {/* Bookmark Button */}
+            <button
+              onClick={() => {}}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded"
+              title="Yer İmi"
+            >
+              <BookmarkCheck className="w-5 h-5" />
+            </button>
           </div>
-        )}
-
-        {/* Yer İmleri Menüsü */}
-        {showBookmarks && (
-          <div className="absolute top-full left-0 right-0 bg-emerald-700 border-t border-emerald-600 p-3 shadow-md z-20">
-            <div className="container mx-auto">
-              <h3 className="text-white font-medium mb-2">Yer İmleri</h3>
-              {bookmarks.length === 0 ? (
-                <p className="text-emerald-200 text-sm">Henüz yer imi eklenmemiş.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {bookmarks.map(bookmark => (
-                    <div
-                      key={bookmark.id}
-                      onClick={() => jumpToBookmark(bookmark)}
-                      className="bg-emerald-600 hover:bg-emerald-500 rounded p-2 cursor-pointer flex justify-between items-center"
-                    >
-                      <div>
-                        <div className="text-white font-medium">{bookmark.title}</div>
-                        <div className="text-emerald-200 text-xs">
-                          {new Date(bookmark.addedAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e) => removeBookmark(bookmark.id, e)}
-                        className="text-emerald-300 hover:text-white p-1"
-                        title="Yer İmini Kaldır"
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ALTTAKİ SAĞDA HIZLI SAYFA BUTONLARI */}
-      <div className="fixed bottom-20 right-6 z-20">
-        <div className="flex flex-col space-y-2">
-          <button
-            onClick={() => jumpMultiplePages(-1)}
-            disabled={currentPage <= 1}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center disabled:opacity-50 disabled:hover:bg-emerald-600"
-            title="Önceki Sayfa"
-          >
-            ◀
-          </button>
-          <button
-            onClick={() => setShowQuickNav(true)}
-            className="bg-emerald-700 hover:bg-emerald-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center"
-            title="Sayfaya Git"
-          >
-            {currentPage}
-          </button>
-          <button
-            onClick={() => jumpMultiplePages(1)}
-            disabled={currentPage >= totalPages}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center disabled:opacity-50 disabled:hover:bg-emerald-600"
-            title="Sonraki Sayfa"
-          >
-            ▶
-          </button>
         </div>
       </div>
-
-      {/* ANA İÇERİK */}
+      
+      {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        <QuranReader
-          ref={quranReaderRef}
-          onDataUpdate={handleQuranReaderData}
-          currentTranslation={selectedTranslation}
-          initialPage={currentPage}
-        />
+        <Tabs defaultValue="mushaf" className="w-full" onValueChange={(value) => setViewMode(value as "mushaf" | "cuz")}>
+          <div className="mb-6">
+            <TabsList>
+              <TabsTrigger value="mushaf">Mushaf Görünümü</TabsTrigger>
+              <TabsTrigger value="cuz">Cüz Görünümü</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="mushaf" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Page navigation (desktop) */}
+                <div className={`p-4 bg-white dark:bg-gray-800 rounded-lg shadow ${isDesktop ? 'block' : 'hidden'}`}>
+                  <h3 className="font-bold mb-3 text-gray-800 dark:text-gray-200">Sayfa Seçimi</h3>
+                  <div className="grid grid-cols-5 gap-2">
+                    {[...Array(30)].map((_, i) => (
+                      <Button
+                        key={i}
+                        variant={currentPage === i + 1 ? "default" : "outline"}
+                        className="h-10 p-0"
+                        onClick={() => setPageAndNavigate(i + 1)}
+                      >
+                        {i + 1}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Mobile page navigation */}
+                {!isDesktop && (
+                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow mb-4">
+                    <div className="flex justify-between items-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => currentPage > 1 && setPageAndNavigate(currentPage - 1)}
+                        disabled={currentPage <= 1}
+                      >
+                        Önceki
+                      </Button>
+                      <span className="font-bold">Sayfa {currentPage}</span>
+                      <Button
+                        variant="outline"
+                        onClick={() => currentPage < 604 && setPageAndNavigate(currentPage + 1)}
+                        disabled={currentPage >= 604}
+                      >
+                        Sonraki
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Quran Reader Component - Replace the placeholder */}
+                <div className={`${isDesktop ? 'col-span-2' : 'col-span-1'} bg-white dark:bg-gray-800 rounded-lg shadow p-4 overflow-auto`}>
+                  <Suspense fallback={<QuranReaderLoading />}>
+                    <LazyQuranReader
+                      key="quran-reader"
+                      // We use a callback ref to avoid issues with the component
+                      ref={(instance) => {
+                        if (instance) {
+                          quranReaderRef.current = instance
+                        }
+                      }}
+                      currentTranslation={parseInt(selectedTranslation, 10)}
+                      initialPage={currentPage}
+                      onDataUpdate={handleQuranReaderData}
+                    />
+                  </Suspense>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="cuz" className="mt-0">
+              <CuzOverview onSurahSelect={handleSurahSelection} />
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
-
-      {/* ALTAKİ ÇAĞRI ÇUBUĞU (SESLİ OKUMA VB.) */}
+      
+      {/* Bottom Audio Controls */}
       <div className="bg-emerald-700 text-white sticky bottom-0 p-3 shadow-lg">
         <div className="container mx-auto flex justify-between items-center">
-          {/* SES KONTROL */}
+          {/* Audio Controls */}
           <div className="flex items-center space-x-4">
             <button
               onClick={toggleAudio}
               className="bg-emerald-600 hover:bg-emerald-500 rounded-full w-16 h-16 flex items-center justify-center"
             >
               {isAudioPlaying ? (
-                // Pause icon
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none"
                   viewBox="0 0 24 24" stroke="currentColor"
                 >
@@ -559,7 +367,6 @@ export default function KuranPage() {
                   />
                 </svg>
               ) : (
-                // Play icon
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none"
                   viewBox="0 0 24 24" stroke="currentColor"
                 >
@@ -573,13 +380,9 @@ export default function KuranPage() {
                 </svg>
               )}
             </button>
-            
-            <button onClick={toggleAudio} className="text-lg hover:underline">
-              Açık/Kapalı
-            </button>
           </div>
           
-          {/* Kâri Seçimi */}
+          {/* Qari Selection */}
           <div className="flex items-center">
             <span className="mr-2 text-lg">Kari:</span>
             <select
@@ -594,29 +397,9 @@ export default function KuranPage() {
               ))}
             </select>
           </div>
-
-          {/* Diğer Ayarlar (örnek) */}
+          
+          {/* Other Settings */}
           <div className="flex space-x-4">
-            <button className="hover:text-emerald-300 text-2xl" title="Ayarlar">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0
-                  a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37
-                  a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35
-                  a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37
-                  a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0
-                  a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37
-                  a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35
-                  a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37
-                  .996.608 2.296.07 2.572-1.065z"
-                />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </button>
             <button 
               onClick={toggleFullScreen}
               className="hover:text-emerald-300 text-2xl" 
@@ -634,9 +417,6 @@ export default function KuranPage() {
           </div>
         </div>
       </div>
-
-      {/* Görünmez audio elemanı */}
-      <audio ref={audioRef} hidden />
     </main>
   )
 }
