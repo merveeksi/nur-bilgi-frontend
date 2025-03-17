@@ -153,14 +153,21 @@ export default function SSSPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 pt-6 pb-16">
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8 text-emerald-500">
-          Sıkça Sorulan Sorular
-        </h1>
+    <div className="min-h-screen text-black bg-gray-50 pt-24 pb-16 px-4 dark:bg-gray-900">
+      <div className="container mx-auto max-w-6xl">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-emerald-700 dark:text-emerald-400 mb-2">
+              Sıkça Sorulan Sorular
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 md:mb-0">
+              Nur Bilgi platformu hakkında sık sorulan sorular ve yanıtları
+            </p>
+          </div>
+        </div>
         
         {/* Arama kutusu */}
-        <div className="max-w-2xl mx-auto mb-6 relative">
+        <div className="mb-6 relative">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -168,12 +175,12 @@ export default function SSSPage() {
               placeholder="Sorularda ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white border-gray-200"
+              className="pl-10 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -195,13 +202,13 @@ export default function SSSPage() {
         </div>
         
         {/* Kategoriler */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-8">
           <button
             onClick={() => setActiveCategory(null)}
             className={`px-4 py-2 rounded-md transition-colors ${
               activeCategory === null
-                ? "bg-emerald-600 text-white font-medium"
-                : "bg-white text-slate-800 hover:bg-gray-200 font-medium"
+                ? "bg-emerald-600 text-white dark:bg-emerald-700"
+                : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
           >
             Tümü
@@ -213,8 +220,8 @@ export default function SSSPage() {
               onClick={() => setActiveCategory(category.id)}
               className={`px-4 py-2 rounded-md transition-colors ${
                 activeCategory === category.id
-                  ? "bg-emerald-600 text-white font-medium"
-                  : "bg-white text-slate-800 hover:bg-gray-200 font-medium"
+                  ? "bg-emerald-600 text-white dark:bg-emerald-700"
+                  : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
               }`}
             >
               {category.title}
@@ -223,55 +230,39 @@ export default function SSSPage() {
         </div>
         
         {/* SSS Accordion */}
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {filteredFaqs.length === 0 ? (
-            <div className="bg-white p-6 rounded-lg text-center">
-              <p className="text-gray-600">Aramanızla eşleşen soru bulunamadı.</p>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">
+              <p className="text-gray-600 dark:text-gray-400">Aramanızla eşleşen soru bulunamadı.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {filteredFaqs.map((faq) => (
                 <div
                   key={faq.id}
-                  className="bg-white border border-gray-100 rounded-lg overflow-hidden"
+                  className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm"
                 >
                   <button
                     onClick={() => toggleQuestion(faq.id)}
-                    className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50"
+                    className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700/50"
                   >
-                    <h3 className="font-medium text-gray-900">{faq.question}</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{faq.question}</h3>
                     <ChevronDown
-                      className={`h-5 w-5 text-emerald-600 transition-transform ${
+                      className={`h-5 w-5 text-emerald-600 dark:text-emerald-400 transition-transform ${
                         openQuestions[faq.id] ? "transform rotate-180" : ""
                       }`}
                     />
                   </button>
                   
                   {openQuestions[faq.id] && (
-                    <div className="px-6 py-4 bg-emerald-50 border-t border-gray-100">
-                      <p className="text-gray-700">{faq.answer}</p>
+                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
+                      <p className="text-gray-700 dark:text-gray-300">{faq.answer}</p>
                     </div>
                   )}
                 </div>
               ))}
             </div>
           )}
-        </div>
-        
-        {/* İletişim CTA */}
-        <div className="max-w-3xl mx-auto mt-12 p-6 bg-white rounded-lg text-center border border-gray-100">
-          <h2 className="text-xl font-bold text-emerald-700 mb-2">Sorunuzu bulamadınız mı?</h2>
-          <p className="text-gray-600 mb-4">
-            Merak ettiğiniz diğer sorular için chatbot'umuzu kullanabilir veya bizimle iletişime geçebilirsiniz.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-3">
-            <a href="/chatbot" className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors">
-              Chatbot'a Sor
-            </a>
-            <a href="/iletisim" className="px-4 py-2 bg-white text-slate-800 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors">
-              İletişime Geç
-            </a>
-          </div>
         </div>
       </div>
     </div>

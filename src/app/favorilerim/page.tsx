@@ -121,11 +121,18 @@ export default function FavorilerimPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 pt-6 pb-16">
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8 text-emerald-500">
-          Favorilerim
-        </h1>
+    <div className="min-h-screen text-black bg-gray-50 pt-24 pb-16 px-4 dark:bg-gray-900">
+      <div className="container mx-auto max-w-6xl">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-emerald-700 dark:text-emerald-400 mb-2">
+              Favorilerim
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 md:mb-0">
+              Kaydettiğiniz dua ve hadisler
+            </p>
+          </div>
+        </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -142,8 +149,8 @@ export default function FavorilerimPage() {
           {/* Dualar Tab */}
           <TabsContent value="dualar" className="space-y-6">
             {duaFavorites.length === 0 ? (
-              <div className="bg-white p-6 rounded-lg text-center">
-                <p className="text-gray-600 mb-4">Favori duanız bulunmamaktadır.</p>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Favori duanız bulunmamaktadır.</p>
                 <a href="/dua" className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors">
                   Dua Sayfasına Git
                 </a>
@@ -156,7 +163,7 @@ export default function FavorilerimPage() {
                     layout
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-lg shadow-md overflow-hidden"
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
                   >
                     <div
                       onClick={() => toggleExpand(dua.id)}
@@ -164,15 +171,15 @@ export default function FavorilerimPage() {
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex-shrink-0">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300">
                             <BookOpen className="h-5 w-5" />
                           </div>
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                             {dua.title}
                           </h3>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {dua.source}
                           </p>
                         </div>
@@ -206,36 +213,36 @@ export default function FavorilerimPage() {
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.3 }}
-                          className="border-t border-gray-100"
+                          className="border-t border-gray-100 dark:border-gray-700"
                         >
                           <div className="p-5 space-y-4">
                             {dua.arabic && (
-                              <p className="text-right text-gray-800 text-xl font-arabic leading-relaxed tracking-wider mb-2">
+                              <p className="text-right text-gray-800 dark:text-gray-200 text-xl font-arabic leading-relaxed tracking-wider mb-2">
                                 {dua.arabic}
                               </p>
                             )}
                             
-                            <p className="text-gray-800 font-medium">
+                            <p className="text-gray-800 dark:text-gray-200 font-medium">
                               {dua.turkishText}
                             </p>
                             
                             {dua.translation && (
-                              <p className="text-gray-700">
+                              <p className="text-gray-700 dark:text-gray-300">
                                 <span className="font-medium">Anlamı:</span>{" "}
                                 {dua.translation}
                               </p>
                             )}
 
                             {dua.occasion && (
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
                                 <span className="font-medium">Ne Zaman Okunur:</span>{" "}
                                 {dua.occasion}
                               </p>
                             )}
 
                             {dua.virtues && (
-                              <div className="mt-4 bg-emerald-50 p-4 rounded-md">
-                                <p className="text-sm text-emerald-700">
+                              <div className="mt-4 bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-md">
+                                <p className="text-sm text-emerald-700 dark:text-emerald-300">
                                   <span className="font-medium">Faziletleri:</span>{" "}
                                   {dua.virtues}
                                 </p>
@@ -254,8 +261,8 @@ export default function FavorilerimPage() {
           {/* Hadisler Tab */}
           <TabsContent value="hadisler" className="space-y-6">
             {hadiFavorites.length === 0 ? (
-              <div className="bg-white p-6 rounded-lg text-center">
-                <p className="text-gray-600 mb-4">Favori hadisiniz bulunmamaktadır.</p>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Favori hadisiniz bulunmamaktadır.</p>
                 <a href="/hadis" className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors">
                   Hadis Sayfasına Git
                 </a>
@@ -263,21 +270,33 @@ export default function FavorilerimPage() {
             ) : (
               <div className="space-y-4">
                 {hadiFavorites.map((hadis) => (
-                  <div
+                  <motion.div
                     key={hadis.id}
-                    className="bg-white border border-gray-100 rounded-lg overflow-hidden"
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
                   >
                     <div
                       onClick={() => toggleExpand(hadis.id)}
-                      className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                      className="w-full flex items-center justify-between p-5 text-left cursor-pointer"
                     >
-                      <div className="flex items-center">
-                        {hadis.number && (
-                          <span className="bg-emerald-100 text-emerald-800 font-bold rounded-full h-8 w-8 flex items-center justify-center text-sm mr-3">
-                            {hadis.number}
-                          </span>
-                        )}
-                        <p className="font-medium text-gray-900">{hadis.turkishText.length > 70 ? hadis.turkishText.substring(0, 70) + "..." : hadis.turkishText}</p>
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300">
+                            <BookMarked className="h-5 w-5" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            {hadis.turkishText.substring(0, 60)}{hadis.turkishText.length > 60 ? "..." : ""}
+                          </h3>
+                          {hadis.category && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {hadis.category.charAt(0).toUpperCase() + hadis.category.slice(1)}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center">
                         <span 
@@ -293,47 +312,59 @@ export default function FavorilerimPage() {
                             <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
                           </svg>
                         </span>
-                        <ChevronDown
-                          className={`h-5 w-5 text-emerald-600 transition-transform ${
-                            expandedItems[hadis.id] ? "transform rotate-180" : ""
-                          }`}
-                        />
+                        {expandedItems[hadis.id] ? (
+                          <ChevronUp className="h-5 w-5 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-gray-400" />
+                        )}
                       </div>
                     </div>
-                    
-                    {expandedItems[hadis.id] && (
-                      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                        {hadis.arabic && (
-                          <p className="text-right mb-3 font-arabic text-xl text-gray-800">{hadis.arabic}</p>
-                        )}
-                        {hadis.source && (
-                          <p className="mb-2 text-sm text-gray-500">{hadis.source}</p>
-                        )}
-                        <p className="text-gray-700">{hadis.explanation}</p>
-                      </div>
-                    )}
-                  </div>
+
+                    <AnimatePresence>
+                      {expandedItems[hadis.id] && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="border-t border-gray-100 dark:border-gray-700"
+                        >
+                          <div className="p-5 space-y-4">
+                            {hadis.arabic && (
+                              <p className="text-right text-gray-800 dark:text-gray-200 text-xl font-arabic leading-relaxed tracking-wider mb-4">
+                                {hadis.arabic}
+                              </p>
+                            )}
+                            
+                            <p className="text-gray-800 dark:text-gray-200 font-medium mb-3">
+                              {hadis.turkishText}
+                            </p>
+                            
+                            {hadis.source && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+                                <span className="font-medium not-italic">Kaynak:</span>{" "}
+                                {hadis.source}
+                              </p>
+                            )}
+
+                            {hadis.explanation && (
+                              <div className="mt-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-md">
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                  <span className="font-medium">Açıklama:</span>{" "}
+                                  {hadis.explanation}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
                 ))}
               </div>
             )}
           </TabsContent>
         </Tabs>
-        
-        {/* Bilgilendirme ve Yönlendirme Bölümü */}
-        <div className="max-w-3xl mx-auto mt-12 p-6 bg-white rounded-lg text-center border border-gray-100">
-          <h2 className="text-xl font-bold text-emerald-700 mb-2">Favorilerinizi Yönetin</h2>
-          <p className="text-gray-600 mb-4">
-            Favori dua ve hadislerinizi buradan kolayca görüntüleyebilir, Dua ve Hadis sayfalarından yeni favoriler ekleyebilirsiniz.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-3">
-            <a href="/dua" className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors">
-              Dua Sayfasına Git
-            </a>
-            <a href="/hadis" className="px-4 py-2 bg-white text-slate-800 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors">
-              Hadis Sayfasına Git
-            </a>
-          </div>
-        </div>
       </div>
     </div>
   );
