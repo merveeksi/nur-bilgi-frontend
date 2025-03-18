@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserPlus, AlertCircle } from "lucide-react";
+import { IslamicLoader } from "@/components/ui/loading";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -53,6 +54,12 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {isLoading && (
+          <div className="flex justify-center py-4">
+            <IslamicLoader size="sm" text="Hesabınız oluşturuluyor..." />
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             label="Ad Soyad"
@@ -64,6 +71,7 @@ export default function RegisterPage() {
               setName(e.target.value);
             }}
             required
+            disabled={isLoading}
           />
 
           <Input
@@ -76,6 +84,7 @@ export default function RegisterPage() {
               setEmail(e.target.value);
             }}
             required
+            disabled={isLoading}
           />
 
           <Input
@@ -89,6 +98,7 @@ export default function RegisterPage() {
               setPassword(e.target.value);
             }}
             required
+            disabled={isLoading}
           />
 
           <Input
@@ -102,6 +112,7 @@ export default function RegisterPage() {
               setConfirmPassword(e.target.value);
             }}
             required
+            disabled={isLoading}
           />
 
           <div className="flex items-center gap-2">
@@ -110,6 +121,7 @@ export default function RegisterPage() {
               id="terms"
               className="h-4 w-4 rounded border-gray-300 text-emerald-500"
               required
+              disabled={isLoading}
             />
             <label
               htmlFor="terms"
@@ -137,7 +149,7 @@ export default function RegisterPage() {
           <Button
             type="submit"
             className="w-full"
-            isLoading={isLoading}
+            disabled={isLoading}
           >
             <UserPlus className="h-5 w-5" />
             Kaydol

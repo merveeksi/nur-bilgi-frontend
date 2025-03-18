@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface FeatureCardProps {
   title: string;
@@ -7,6 +8,7 @@ interface FeatureCardProps {
   icon?: React.ReactNode;
   emoji?: string;
   className?: string;
+  link?: string;
 }
 
 /**
@@ -18,12 +20,10 @@ export function FeatureCard({
   icon,
   emoji,
   className,
+  link,
 }: FeatureCardProps) {
-  return (
-    <div className={cn(
-      "p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md hover:shadow-lg transition-shadow",
-      className
-    )}>
+  const CardContent = () => (
+    <>
       {/* Icon or Emoji */}
       {icon ? (
         <div className="text-emerald-600 dark:text-emerald-400 mb-4">
@@ -44,6 +44,28 @@ export function FeatureCard({
       <p className="text-gray-700 dark:text-gray-300">
         {description}
       </p>
+    </>
+  );
+
+  // Link varsa card'ı link içerisinde render et
+  if (link) {
+    return (
+      <Link href={link} className={cn(
+        "block p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md hover:shadow-lg transition-shadow hover:bg-gray-50 dark:hover:bg-slate-700",
+        className
+      )}>
+        <CardContent />
+      </Link>
+    );
+  }
+
+  // Link yoksa normal div olarak render et
+  return (
+    <div className={cn(
+      "p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md hover:shadow-lg transition-shadow",
+      className
+    )}>
+      <CardContent />
     </div>
   );
 }

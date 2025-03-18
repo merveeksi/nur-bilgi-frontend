@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { IslamicLoader } from "@/components/ui/loading";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function SettingsPage() {
   
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   
   // Kullanıcı bilgilerini form alanlarına yerleştir
   React.useEffect(() => {
@@ -40,10 +42,12 @@ export default function SettingsPage() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setIsUpdating(true);
     
     // Burada gerçek bir API isteği yapılacaktı, şimdilik simüle ediyoruz
     setTimeout(() => {
       setSuccess("Profil bilgileriniz başarıyla güncellendi.");
+      setIsUpdating(false);
     }, 1000);
   };
 
@@ -51,10 +55,12 @@ export default function SettingsPage() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setIsUpdating(true);
     
     // Şifrelerin eşleşip eşleşmediğini kontrol et
     if (newPassword !== confirmNewPassword) {
       setError("Yeni şifreler eşleşmiyor.");
+      setIsUpdating(false);
       return;
     }
     
@@ -64,13 +70,14 @@ export default function SettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
+      setIsUpdating(false);
     }, 1000);
   };
 
   if (!isLoggedIn || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p>Yükleniyor...</p>
+        <IslamicLoader size="lg" text="Hesap ayarları yükleniyor..." />
       </div>
     );
   }
@@ -105,6 +112,12 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {isUpdating && (
+          <div className="mb-6 flex justify-center">
+            <IslamicLoader size="sm" text="Bilgileriniz güncelleniyor..." />
+          </div>
+        )}
+
         <div className="mx-auto max-w-3xl space-y-8">
           {/* Profil Bilgileri Formu */}
           <div className="rounded-lg border bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -119,6 +132,7 @@ export default function SettingsPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                disabled={isUpdating}
               />
 
               <Input
@@ -128,9 +142,10 @@ export default function SettingsPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isUpdating}
               />
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={isUpdating}>
                 Bilgileri Güncelle
               </Button>
             </form>
@@ -149,6 +164,7 @@ export default function SettingsPage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
+                disabled={isUpdating}
               />
 
               <Input
@@ -158,6 +174,7 @@ export default function SettingsPage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
+                disabled={isUpdating}
               />
 
               <Input
@@ -167,9 +184,10 @@ export default function SettingsPage() {
                 value={confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
                 required
+                disabled={isUpdating}
               />
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={isUpdating}>
                 Şifreyi Güncelle
               </Button>
             </form>

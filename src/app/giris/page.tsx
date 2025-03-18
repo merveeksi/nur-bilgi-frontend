@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogIn, User, AlertCircle } from "lucide-react";
+import { IslamicLoader } from "@/components/ui/loading";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,6 +44,12 @@ export default function LoginPage() {
           </div>
         )}
 
+        {isLoading && (
+          <div className="flex justify-center py-4">
+            <IslamicLoader size="sm" text="Giriş yapılıyor..." />
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             label="E-posta Adresi"
@@ -54,6 +61,7 @@ export default function LoginPage() {
               setEmail(e.target.value);
             }}
             required
+            disabled={isLoading}
           />
 
           <Input
@@ -66,6 +74,7 @@ export default function LoginPage() {
               setPassword(e.target.value);
             }}
             required
+            disabled={isLoading}
           />
 
           <div className="flex items-center justify-between">
@@ -73,6 +82,7 @@ export default function LoginPage() {
               <input
                 type="checkbox"
                 className="h-4 w-4 rounded border-gray-300 text-emerald-500"
+                disabled={isLoading}
               />
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 Beni hatırla
@@ -89,7 +99,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             className="w-full"
-            isLoading={isLoading}
+            disabled={isLoading}
           >
             <LogIn className="h-5 w-5" />
             Giriş Yap
@@ -129,6 +139,7 @@ export default function LoginPage() {
               setEmail("ahmet@example.com");
               setPassword("password");
             }}
+            disabled={isLoading}
           >
             <User className="h-5 w-5" />
             Demo Hesabıyla Giriş Yap

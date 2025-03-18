@@ -4,18 +4,35 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLoading } from "@/contexts/LoadingContext";
 import { User, LogOut, Settings, Bell, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function UserProfileMenu() {
   const { user, isLoggedIn, logout } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    showLoading("Çıkış yapılıyor...");
     logout();
     setIsMenuOpen(false);
-    router.push("/");
+    
+    setTimeout(() => {
+      hideLoading();
+      router.push("/");
+    }, 500);
+  };
+
+  const handleNavigation = (path: string) => {
+    showLoading("Sayfa yükleniyor...");
+    setIsMenuOpen(false);
+    
+    setTimeout(() => {
+      hideLoading();
+      router.push(path);
+    }, 500);
   };
 
   if (!isLoggedIn) {
@@ -57,38 +74,34 @@ export default function UserProfileMenu() {
           </div>
 
           <div className="py-1">
-            <Link
-              href="/profilim"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              onClick={() => setIsMenuOpen(false)}
+            <button
+              onClick={() => handleNavigation("/profilim")}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <User className="h-4 w-4" />
               Profilim
-            </Link>
-            <Link
-              href="/profilim/ayarlar"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              onClick={() => setIsMenuOpen(false)}
+            </button>
+            <button
+              onClick={() => handleNavigation("/profilim/ayarlar")}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <Settings className="h-4 w-4" />
               Ayarlar
-            </Link>
-            <Link
-              href="/favorilerim"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              onClick={() => setIsMenuOpen(false)}
+            </button>
+            <button
+              onClick={() => handleNavigation("/favorilerim")}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <Heart className="h-4 w-4" />
               Favorilerim
-            </Link>
-            <Link
-              href="/bildirimler"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              onClick={() => setIsMenuOpen(false)}
+            </button>
+            <button
+              onClick={() => handleNavigation("/bildirimler")}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <Bell className="h-4 w-4" />
               Bildirimler
-            </Link>
+            </button>
           </div>
 
           <div className="border-t border-gray-100 pt-1 dark:border-gray-700">

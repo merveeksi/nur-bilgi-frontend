@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Book, BookOpen, HandHeart, Heart, HelpCircle, Home, MessageSquare, Clock, Shield, Notebook, LogIn, UserPlus, Sun, Moon, Info, LucideIcon } from "lucide-react";
+import { Book, BookOpen, HandHeart, Heart, HelpCircle, Home, MessageSquare, Clock, Shield, Notebook, LogIn, UserPlus, Sun, Moon, Info, LucideIcon, MoreHorizontal, Calculator, BellRing, Calendar, Map, Hash } from "lucide-react";
 import Logo from "./logo";
 import { useAuth } from "@/contexts/AuthContext";
 import { ExpandableTabs } from "@/components/ui/expandable-tabs";
@@ -18,6 +18,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [showExpandableTabs, setShowExpandableTabs] = useState(false);
+  const [showOtherServicesDropdown, setShowOtherServicesDropdown] = useState(false);
   
   const links = [
     { name: "AnaSayfa", href: "/", icon: Home },
@@ -28,9 +29,20 @@ export default function Navbar() {
     { name: "Hadis", href: "/hadis", icon: BookOpen },
     { name: "İlmihal", href: "/ilmihal", icon: Shield },
     { name: "Dua", href: "/dua", icon: HandHeart },
+    { name: "Diğer Hizmetlerimiz", href: "#", icon: MoreHorizontal, isDropdown: true },
     { name: "Notlarım", href: "/notlarim", icon: Notebook },
     { name: "Favorilerim", href: "/favorilerim", icon: Heart },
     { name: "SSS", href: "/sss", icon: HelpCircle },
+  ];
+  
+  const otherServicesLinks = [
+    { name: "Zikirmatik", href: "/diger-hizmetler/zikirmatik", icon: Hash },
+    { name: "Esmaül Hüsna", href: "/diger-hizmetler/esmaul-husna", icon: Book },
+    { name: "Zekat Hesapla", href: "/diger-hizmetler/zekat-hesapla", icon: Calculator },
+    { name: "Namaz Hatırlatıcı", href: "/diger-hizmetler/namaz-hatirlatici", icon: BellRing },
+    { name: "Kaza Namazları", href: "/diger-hizmetler/kaza-namazlari", icon: Clock },
+    { name: "Dini Günler ve Geceler", href: "/diger-hizmetler/dini-gunler", icon: Calendar },
+    { name: "Yakındaki Camiler", href: "/diger-hizmetler/yakin-camiler", icon: Map },
   ];
   
   const authLinks = [
@@ -40,7 +52,9 @@ export default function Navbar() {
 
   // Set up tabs for ExpandableTabs component
   const tabs = [
-    ...links.map(link => ({ title: link.name, icon: link.icon, route: link.href })),
+    ...links.filter(link => !link.isDropdown).map(link => ({ title: link.name, icon: link.icon, route: link.href })),
+    { title: "Diğer Hizmetlerimiz", icon: MoreHorizontal, route: otherServicesLinks[0].href },
+    ...otherServicesLinks.map(link => ({ title: link.name, icon: link.icon, route: link.href })),
     { type: "separator" as const },
     ...authLinks.map(link => ({ title: link.name, icon: link.icon, route: link.href })),
   ];
@@ -79,6 +93,34 @@ export default function Navbar() {
           <div className="hidden md:flex flex-wrap items-center space-x-1 md:space-x-3 lg:space-x-6 px-2 md:px-4 lg:px-6 flex-grow justify-center">
             {links.map((link) => {
               const isActive = pathname === link.href;
+              if (link.isDropdown) {
+                return (
+                  <div key={link.name} className="relative">
+                    <button
+                      onClick={() => setShowOtherServicesDropdown(!showOtherServicesDropdown)}
+                      className={`flex items-center gap-1 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap px-1 py-1 rounded-md text-white hover:bg-emerald-500/20`}
+                    >
+                      <link.icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span>{link.name}</span>
+                    </button>
+                    {showOtherServicesDropdown && (
+                      <div className="absolute top-full left-0 z-50 mt-1 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-md py-1 overflow-hidden">
+                        {otherServicesLinks.map((subLink) => (
+                          <Link
+                            key={subLink.href}
+                            href={subLink.href}
+                            onClick={() => setShowOtherServicesDropdown(false)}
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-emerald-700/20"
+                          >
+                            <subLink.icon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <span>{subLink.name}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
               return (
                 <Link
                   key={link.href}
@@ -230,6 +272,34 @@ export default function Navbar() {
           <div className="flex flex-col space-y-3">
             {links.map((link) => {
               const isActive = pathname === link.href;
+              if (link.isDropdown) {
+                return (
+                  <div key={link.name} className="relative">
+                    <button
+                      onClick={() => setShowOtherServicesDropdown(!showOtherServicesDropdown)}
+                      className={`flex items-center space-x-2 p-2 rounded-lg text-white hover:bg-emerald-500/50 hover:text-yellow-200 w-full text-left`}
+                    >
+                      <link.icon className="w-5 h-5" />
+                      <span>{link.name}</span>
+                    </button>
+                    {showOtherServicesDropdown && (
+                      <div className="ml-6 mt-1 border-l-2 border-emerald-500 pl-2">
+                        {otherServicesLinks.map((subLink) => (
+                          <Link
+                            key={subLink.href}
+                            href={subLink.href}
+                            onClick={closeMobileMenu}
+                            className="flex items-center space-x-2 p-2 rounded-lg text-white hover:bg-emerald-500/50 hover:text-yellow-200"
+                          >
+                            <subLink.icon className="w-4 h-4" />
+                            <span>{subLink.name}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
               return (
                 <Link
                   key={link.href}

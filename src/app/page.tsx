@@ -38,32 +38,92 @@ const features = [
   {
     emoji: "🤖",
     title: "İslami Chatbot",
-    description: "Dini sorularınızı anında yanıtlayan yapay zeka destekli chatbot."
+    description: "Dini sorularınızı anında yanıtlayan yapay zeka destekli chatbot.",
+    link: "/chatbot"
   },
   {
     emoji: "🕌",
     title: "Namaz Vakitleri",
-    description: "Bulunduğunuz konuma göre güncel namaz vakitleri."
+    description: "Bulunduğunuz konuma göre güncel namaz vakitleri.",
+    link: "/namaz-vakitleri"
   },
   {
     emoji: "📖",
     title: "Kur'an-ı Kerim",
-    description: "Kur'an-ı Kerim'i okuyun, dinleyin ve ayetleri inceleyin."
+    description: "Kur'an-ı Kerim'i okuyun, dinleyin ve ayetleri inceleyin.",
+    link: "/kuran"
+  },
+  {
+    emoji: "📜",
+    title: "Hadisler",
+    description: "Hadisleri okuyun ve inceleyin.",
+    link: "/hadisler"
   },
   {
     emoji: "📚",
     title: "İlmihal Bilgileri",
-    description: "Kapsamlı ilmihal bilgileri ve dini konularda detaylı açıklamalar."
+    description: "Kapsamlı ilmihal bilgileri ve dini konularda detaylı açıklamalar.",
+    link: "/ilmihal"
   },
   {
     emoji: "🤲",
     title: "Dua ve Zikirler",
-    description: "Günlük dualar, zikirler ve tesbihatlar."
+    description: "Günlük dualar, zikirler ve tesbihatlar.",
+    link: "/dua"
   },
   {
     emoji: "📝",
     title: "Notlar ve Favoriler",
-    description: "Kişisel notlar tutun ve favori içeriklerinizi kaydedin."
+    description: "Kişisel notlar tutun ve favori içeriklerinizi kaydedin.",
+    link: "/favorilerim"
+  },
+  {
+    emoji: "📿",
+    title: "Zikirmatik",
+    description: "Zikir ve tesbihatlarınızı saymanız için dijital zikirmatik.",
+    link: "/diger-hizmetler/zikirmatik"
+  },
+  {
+    emoji: "✨ﷲ",
+    title: "Esmaül Hüsna",
+    description: "Allah'ın 99 ismini öğrenin ve anlamlarını inceleyin.",
+    link: "/diger-hizmetler/esmaul-husna"
+  },
+  {
+    emoji: "💰",
+    title: "Zekat Hesaplama",
+    description: "Güncel altın ve gümüş fiyatlarıyla zekat hesaplaması yapın.",
+    link: "/diger-hizmetler/zekat-hesapla"
+  },
+  {
+    emoji: "⏰",
+    title: "Namaz Hatırlatıcı",
+    description: "Namaz vakitlerinde hatırlatma alın ve takip edin.",
+    link: "/diger-hizmetler/namaz-hatirlatici"
+  },
+  {
+    emoji: "🗓️",
+    title: "Kaza Namazları",
+    description: "Kaza namazlarınızı takip edin ve planlamanızı yapın.",
+    link: "/diger-hizmetler/kaza-namazlari"
+  },
+  {
+    emoji: "🌙",
+    title: "Dini Günler ve Geceler",
+    description: "Önemli dini gün ve geceleri takviminizde görün ve bilgi edinin.",
+    link: "/diger-hizmetler/dini-gunler"
+  },
+  {
+    emoji: "🔍",
+    title: "Yakındaki Camiler",
+    description: "Konumunuza en yakın camileri bulun ve rota çıkarın.",
+    link: "/diger-hizmetler/yakin-camiler"
+  },
+  {
+    emoji: "ℹ️",
+    title: "Hakkımızda",
+    description: "Platformumuz hakkında daha fazla bilgi edinin.",
+    link: "/hakkimizda"
   }
 ];
 
@@ -177,6 +237,7 @@ export default function Home() {
               emoji={feature.emoji}
               title={feature.title}
               description={feature.description}
+              link={feature.link}
             />
           ))}
         </div>
