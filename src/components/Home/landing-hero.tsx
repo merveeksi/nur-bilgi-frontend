@@ -40,7 +40,7 @@ const islamicImages = [
  */
 export function LandingHero() {
   return (
-    <section className="w-full h-[80vh] overflow-hidden md:overflow-visible flex flex-col items-center justify-center relative">
+    <section className="w-full h-[80vh] overflow-hidden md:overflow-visible flex flex-col items-center justify-center relative z-10 ">
       {/* Parallax-Floating yapısı */}
       <Floating sensitivity={-0.5} className="h-full">
         {/* 1. Görsel */}

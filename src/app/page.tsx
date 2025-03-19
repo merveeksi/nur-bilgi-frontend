@@ -1,3 +1,5 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -5,7 +7,7 @@ import LandingHero from '@/components/Home/landing-hero'
 import PageSection from '@/components/ui/page-section'
 import FeatureCard from '@/components/ui/feature-card'
 import { Metadata } from 'next'
-
+import { useEffect } from 'react'
 // Dinamik Sözler Componenti
 const DynamicQuotes = dynamic(() => import('@/components/DynamicQuotes'), {
   ssr: false,
@@ -192,13 +194,14 @@ const getRandomQuote = () => {
   )
 }) */}
 
-
-
-
-
 export default function Home() {
   // Rastgele bir söz seç - keeping this for server-side fallback
   const randomQuote = getRandomQuote();
+  
+  // Sayfa yüklendiğinde sayfanın en üstüne scroll yap
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   return (
     <main className="min-h-screen">

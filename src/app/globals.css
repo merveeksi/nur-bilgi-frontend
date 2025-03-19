@@ -1,9 +1,9 @@
+/* Arapça font import */
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Arapça font import - daha güçlü bir şekilde tanımlayalım */
-@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
 
 :root {
   --foreground-rgb: 75, 85, 99; /* gray-600 rengi */

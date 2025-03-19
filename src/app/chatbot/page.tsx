@@ -1,4 +1,7 @@
+"use client"
+
 import dynamic from 'next/dynamic'
+import { useEffect } from 'react'
 
 
 
@@ -15,6 +18,11 @@ const IslamicChatbot = dynamic(() => import('./islamic-chatbot'), {
 })
 
 export default function ChatbotPage() {
+  // Sayfa yüklendiğinde sayfanın en üstüne scroll yap
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   return (
     <main className="min-h-screen bg-white dark:bg-slate-900">
       
