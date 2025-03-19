@@ -7,6 +7,7 @@ Nur Bilgi, kullanıcıların İslami sorularını bir AI chatbot'a sorabileceği
 - 🤖 **İslami Chatbot**: Dini sorularınızı anında yanıtlayan yapay zeka destekli chatbot
 - 📚 **İlmihal Bilgileri**: Kapsamlı ilmihal bilgileri ve dini konularda detaylı açıklamalar
 - 🕌 **Ezan Vakitleri**: Bulunduğunuz konuma göre güncel namaz vakitleri
+- 🔔 **Namaz Hatırlatıcı**: Namaz vakitlerinde sesli ve görsel bildirimlerle hatırlatma yapan özelleştirilebilir alarm sistemi
 - 📖 **Kur'an-ı Kerim**: Kur'an-ı Kerim'i okuyun, dinleyin ve ayetleri inceleyin
 - 🤲 **Dua ve Zikirler**: Günlük dualar, zikirler ve tesbihatlar
 - 📝 **Notlar ve Favoriler**: Kişisel notlar tutun ve favori içeriklerinizi kaydedin

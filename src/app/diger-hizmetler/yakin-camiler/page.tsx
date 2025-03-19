@@ -162,11 +162,52 @@ export default function YakinCamilerPage() {
     // Normalde burada API çağrısı yapılacak
     // Örnek veri kullanıyoruz
     
-    // Random mesafe ekleme (gerçek konuma göre hesaplanması gerekir)
-    const mosquesWithDistance = sampleMosques.map(mosque => ({
-      ...mosque,
-      distance: Math.floor(Math.random() * 3000) + 100 // 100m - 3100m arası
-    }));
+    // Haversine formülü ile mesafe hesaplama
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+      const R = 6371e3; // Earth's radius in meters
+      const φ1 = lat1 * Math.PI/180;
+      const φ2 = lat2 * Math.PI/180;
+      const Δφ = (lat2-lat1) * Math.PI/180;
+      const Δλ = (lon2-lon1) * Math.PI/180;
+
+      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+      return R * c; // in meters
+    };
+
+    // Örnek cami konumları (gerçek uygulamada bunlar sunucudan gelmeli)
+    const mosqueLocations = [
+      { id: "1", lat: 41.0082, lng: 28.9784 }, // Örnek konum - İstanbul
+      { id: "2", lat: 41.0090, lng: 28.9800 },
+      { id: "3", lat: 41.0070, lng: 28.9760 },
+      { id: "4", lat: 41.0100, lng: 28.9730 },
+      { id: "5", lat: 41.0110, lng: 28.9810 }
+    ];
+
+    const { latitude, longitude } = position.coords;
+    
+    const mosquesWithDistance = sampleMosques.map((mosque, index) => {
+      // Cami ID'sine göre konum bul (gerçekte API'den gelecek)
+      const mosqueLocation = mosqueLocations.find(loc => loc.id === mosque.id);
+      
+      let distance = 1000; // Default mesafe
+      if (mosqueLocation) {
+        distance = calculateDistance(
+          latitude, 
+          longitude, 
+          mosqueLocation.lat, 
+          mosqueLocation.lng
+        );
+      }
+      
+      return {
+        ...mosque,
+        distance: Math.round(distance) // Mesafeyi tam sayıya yuvarla
+      };
+    });
     
     setMosques(mosquesWithDistance);
   };

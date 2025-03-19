@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Book, BookOpen, HandHeart, Heart, HelpCircle, Home, MessageSquare, Clock, Shield, Notebook, LogIn, UserPlus, Sun, Moon, Info, LucideIcon, MoreHorizontal, Calculator, BellRing, Calendar, Map, Hash } from "lucide-react";
+import { Book, BookOpen, HandHeart, Heart, HelpCircle, Home, MessageSquare, Clock, Shield, Notebook, LogIn, UserPlus, Sun, Moon, Info, LucideIcon, MoreHorizontal, Calculator, BellRing, Calendar, Map, Hash, Compass } from "lucide-react";
 import Logo from "./logo";
 import { useAuth } from "@/contexts/AuthContext";
 import { ExpandableTabs } from "@/components/ui/expandable-tabs";
@@ -43,6 +43,7 @@ export default function Navbar() {
     { name: "Kaza Namazları", href: "/diger-hizmetler/kaza-namazlari", icon: Clock },
     { name: "Dini Günler ve Geceler", href: "/diger-hizmetler/dini-gunler", icon: Calendar },
     { name: "Yakındaki Camiler", href: "/diger-hizmetler/yakin-camiler", icon: Map },
+    { name: "Kıble Pusulası", href: "/diger-hizmetler/kible-pusulasi", icon: Compass },
   ];
   
   const authLinks = [

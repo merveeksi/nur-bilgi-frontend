@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import LandingHero from '@/components/Home/landing-hero'
 import PageSection from '@/components/ui/page-section'
 import FeatureCard from '@/components/ui/feature-card'
+import { HoverEffect } from '@/components/ui/hover-effect'
 import { Metadata } from 'next'
 import { useEffect } from 'react'
 // Dinamik Sözler Componenti
@@ -16,7 +17,6 @@ const DynamicQuotes = dynamic(() => import('@/components/DynamicQuotes'), {
       <div className="animate-pulse text-3xl text-emerald-600">
         <div className="h-20 w-20 rounded-full bg-emerald-200 dark:bg-emerald-900 flex items-center justify-center">
            ☾﷽
-
         </div>
       </div>
     </div>
@@ -67,6 +67,13 @@ const features = [
     description: "Kapsamlı ilmihal bilgileri ve dini konularda detaylı açıklamalar.",
     link: "/ilmihal"
   },
+  {
+    emoji: "🧭",
+    title: "Kıble",
+    description: "Kıble ve kıble yönünüzü hesaplayın.",
+    link: "/diger-hizmetler/kible-pusulasi"
+  },
+
   {
     emoji: "🤲",
     title: "Dua ve Zikirler",
@@ -120,84 +127,10 @@ const features = [
     title: "Yakındaki Camiler",
     description: "Konumunuza en yakın camileri bulun ve rota çıkarın.",
     link: "/diger-hizmetler/yakin-camiler"
-  },
-  {
-    emoji: "ℹ️",
-    title: "Hakkımızda",
-    description: "Platformumuz hakkında daha fazla bilgi edinin.",
-    link: "/hakkimizda"
   }
 ];
-
-// İslami Motive Edici Sözler
-export const inspirationalQuotes = [
-  { 
-    quote: "En hayırlınız, Kur'an'ı öğrenen ve öğretendir.", 
-    source: "Hadis-i Şerif"
-  },
-  { 
-    quote: "Her zorlukla beraber muhakkak bir kolaylık vardır.", 
-    source: "İnşirah Suresi, 6. Ayet" 
-  },
-  { 
-    quote: "Allah, sabredenlerle beraberdir.", 
-    source: "Bakara Suresi, 153. Ayet" 
-  },
-  { 
-    quote: "İlim öğrenmek, her Müslüman erkek ve kadına farzdır.", 
-    source: "Hadis-i Şerif" 
-  },
-  { 
-    quote: "Kim bir hayra vesile olursa, o hayrı yapan gibi sevap kazanır.", 
-    source: "Hadis-i Şerif" 
-  },
-  { 
-    quote: "Gerçek zenginlik, mal çokluğu değil, gönül tokluğudur.", 
-    source: "Hadis-i Şerif" 
-  },
-  { 
-    quote: "Allah'ın rahmeti, öfkesini geçmiştir.", 
-    source: "Hadis-i Şerif" 
-  },
-  { 
-    quote: "Rabbinizden bağışlanma dileyin; O, çok bağışlayıcıdır.", 
-    source: "Nuh Suresi, 10. Ayet" 
-  },
-  { 
-    quote: "Şüphesiz hardal tanesi ağırlığınca da olsa, Allah onu getirir.", 
-    source: "Lokman Suresi, 16. Ayet" 
-  }
-];
-
-// Random quote seçen fonksiyon
-const getRandomQuote = () => {
-  // Server Component olduğu için bu kısım server tarafında çalışacak
-  // Her sayfa yüklendiğinde rastgele bir söz gösterilecek
-  const randomIndex = Math.floor(Math.random() * inspirationalQuotes.length);
-  return inspirationalQuotes[randomIndex];
-};
-
-{/*const Navbar = dynamic(() => import('@/components/Headers/navbar'), {
-  ssr: false,
-  loading: () => (
-    <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-md animate-pulse h-[400px]">
-      <div className="h-6 bg-gray-100 dark:bg-slate-700 rounded w-3/4 mb-4"></div>
-      <div className="space-y-3">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="flex justify-between">
-            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-1/4"></div>
-            <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-1/4"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}) */}
 
 export default function Home() {
-  // Rastgele bir söz seç - keeping this for server-side fallback
-  const randomQuote = getRandomQuote();
-  
   // Sayfa yüklendiğinde sayfanın en üstüne scroll yap
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -233,17 +166,12 @@ export default function Home() {
         variant="alternate"
         title="Platformumuzun Özellikleri"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <FeatureCard
-              key={index}
-              emoji={feature.emoji}
-              title={feature.title}
-              description={feature.description}
-              link={feature.link}
-            />
-          ))}
-        </div>
+        <HoverEffect items={features.map(feature => ({
+          title: feature.title,
+          description: feature.description,
+          link: feature.link,
+          emoji: feature.emoji
+        }))} />
       </PageSection>
       
       {/* İslami Motive Edici Söz Bölümü - Dinamik Değişim */}

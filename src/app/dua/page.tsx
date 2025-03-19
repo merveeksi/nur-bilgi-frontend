@@ -153,17 +153,19 @@ export default function DuaPage() {
               <h3 className="text-xl font-bold text-white mb-3">{dailyDua.title}</h3>
               
               {dailyDua.arabic && (
-                <div className="group relative mb-4">
-                  <p className="text-right text-white text-xl font-arabic leading-relaxed tracking-wider mb-2">
-                    {dailyDua.arabic}
-                  </p>
-                  <span 
-                    onClick={() => copyToClipboard(dailyDua.arabic!, "Arapça metin")}
-                    className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 rounded-full p-1 cursor-pointer"
-                  >
-                    <Copy className="h-4 w-4 text-white" />
-                  </span>
-                </div>
+                <div className="mb-4 flex items-center">
+                <p className="text-right text-white text-xl font-arabic leading-relaxed tracking-wider flex-grow">
+                  {dailyDua.arabic}
+                </p>
+                <button
+                  onClick={() => copyToClipboard(dailyDua.arabic!, "Arapça metin")}
+                  className="ml-2 bg-black/20 p-1 rounded-full hover:bg-black/40 transition-colors"
+                  aria-label="Arapça metni kopyala"
+                >
+                  <Copy className="h-4 w-4 text-white" />
+                </button>
+              </div>
+              
               )}
               
               <div className="group relative mb-3">

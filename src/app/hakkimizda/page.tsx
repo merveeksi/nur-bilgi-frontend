@@ -58,10 +58,7 @@ export default function AboutPage() {
   };
 
   return (
-    <PageSection
-      title="Hakkımızda"
-      className="py-16"
-    >
+    <PageSection>
       {/* About Us Section - Enhanced Version */}
       <div className="mb-20 max-w-4xl mx-auto">
         <div className="text-center mb-12">
@@ -131,7 +128,7 @@ export default function AboutPage() {
           {/* Shimmer effect background */}
           <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/40 via-emerald-300/40 to-emerald-500/40 rounded-2xl blur-xl opacity-70 animate-pulse"></div>
           
-          <div className="relative bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg h-full border border-emerald-100 dark:border-emerald-900/30">
+          <div className="relative bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg h-full border border-emerald-100 dark:border-emerald-900/30 hover:scale-[1.01] hover:shadow-2xl transition-all duration-300">
             <h2 className="text-2xl font-bold mb-8 text-emerald-600 dark:text-emerald-400">
               İletişim Bilgileri
             </h2>
@@ -213,7 +210,7 @@ export default function AboutPage() {
           {/* Shimmer effect background */}
           <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/40 via-emerald-300/40 to-emerald-500/40 rounded-2xl blur-xl opacity-70 animate-pulse"></div>
           
-          <div className="relative bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg h-full border border-emerald-100 dark:border-emerald-900/30">
+          <div className="relative bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg h-full border border-emerald-100 dark:border-emerald-900/30 hover:scale-[1.01] hover:shadow-2xl transition-all duration-300">
             <h2 className="text-2xl font-bold mb-8 text-emerald-600 dark:text-emerald-400">
               Bize Mesaj Gönderin
             </h2>
@@ -286,7 +283,7 @@ export default function AboutPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2"
+                  className="w-full flex items-center justify-center gap-2 bg-emerald-500 dark:bg-emerald-900/30 hover:bg-emerald-600 dark:hover:bg-emerald-800/50 transition-colors"
                   variant="default"
                   size="lg"
                 >
