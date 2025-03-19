@@ -14,6 +14,13 @@ interface RichTextEditorProps {
   readOnly?: boolean;
 }
 
+// Check if our window patch has been applied
+declare global {
+  interface Window {
+    __REACT_QUILL_MUTATION_PATCH__?: boolean;
+  }
+}
+
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
@@ -27,6 +34,16 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // Apply basic configuration for Quill editor after mount
+    if (typeof window !== 'undefined') {
+      const timerId = setTimeout(() => {
+        if (quillRef.current) {
+          // Set focus if needed or apply other configurations
+        }
+      }, 100);
+      return () => clearTimeout(timerId);
+    }
   }, []);
 
   const modules = {

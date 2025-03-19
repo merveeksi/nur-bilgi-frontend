@@ -51,6 +51,102 @@ interface NotePageProps {
   forceIsNew?: boolean;
 }
 
+// Fix for DOMNodeInserted deprecation warning
+const QuillDeprecationFix = () => {
+  useEffect(() => {
+    // Only run in the browser
+    if (typeof window !== 'undefined') {
+      // Check if we have already applied the patch
+      if (window.__REACT_QUILL_MUTATION_PATCH__) {
+        return; // Patch already applied, don't add script again
+      }
+      
+      // Mark that we're applying the patch
+      window.__REACT_QUILL_MUTATION_PATCH__ = true;
+      
+      // Add a script to prevent React-Quill from using DOMNodeInserted
+      const script = document.createElement('script');
+      script.id = "quill-deprecation-fix"; // Add an ID to check for existing script
+      
+      // Check if script already exists
+      if (document.getElementById("quill-deprecation-fix")) {
+        return; // Script already exists
+      }
+      
+      script.innerHTML = `
+        // Create a polyfill system for DOMNodeInserted events
+        (function() {
+          // Store the original addEventListener
+          const originalAddEventListener = EventTarget.prototype.addEventListener;
+          
+          // Keep track of elements and their DOMNodeInserted listeners
+          const nodeInsertedListeners = new WeakMap();
+          
+          // Replace the addEventListener method
+          EventTarget.prototype.addEventListener = function(type, listener, options) {
+            if (type === 'DOMNodeInserted') {
+              // Instead of adding the actual event listener, we'll store it for our polyfill
+              const element = this;
+              
+              if (!nodeInsertedListeners.has(element)) {
+                nodeInsertedListeners.set(element, []);
+                
+                // Set up a MutationObserver for this element
+                const observer = new MutationObserver((mutations) => {
+                  mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                      // Get all listeners for this element
+                      const listeners = nodeInsertedListeners.get(element) || [];
+                      
+                      // Call each listener for each added node
+                      mutation.addedNodes.forEach(node => {
+                        listeners.forEach(listenerFn => {
+                          // Create a synthetic event
+                          const event = new Event('DOMNodeInserted', { bubbles: true });
+                          Object.defineProperty(event, 'target', { value: node });
+                          
+                          // Call the listener with the synthetic event
+                          listenerFn.call(element, event);
+                        });
+                      });
+                    }
+                  });
+                });
+                
+                // Start observing the element
+                observer.observe(element, { childList: true, subtree: true });
+              }
+              
+              // Add this listener to our collection
+              const listeners = nodeInsertedListeners.get(element);
+              if (listeners && !listeners.includes(listener)) {
+                listeners.push(listener);
+              }
+              
+              // Log that we've intercepted the listener
+              console.log('DOMNodeInserted listener intercepted and replaced with MutationObserver');
+              return;
+            } else {
+              // For all other event types, use the original behavior
+              return originalAddEventListener.call(this, type, listener, options);
+            }
+          };
+        })();
+      `;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  return null;
+};
+
+// Add TypeScript interface for window
+declare global {
+  interface Window {
+    __REACT_QUILL_MUTATION_PATCH__?: boolean;
+  }
+}
+
 export default function NotePage({ forceIsNew }: NotePageProps) {
   const router = useRouter();
   const params = useParams();
@@ -252,6 +348,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16 px-4 dark:bg-gray-900">
+      <QuillDeprecationFix />
       <div className="container mx-auto max-w-4xl">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -260,9 +357,9 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
               variant="ghost" 
               size="sm" 
               onClick={goBack} 
-              className="mr-2 text-gray-800"
+              className="mr-2 text-gray-800 dark:text-gray-200"
             >
-              <ArrowLeft className="h-5 w-5 mr-1 text-gray-800 " />
+              <ArrowLeft className="h-5 w-5 mr-1 text-gray-800 dark:text-gray-200" />
               Geri
             </Button>
             <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
@@ -286,7 +383,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
               size="sm" 
               onClick={saveNote} 
               disabled={isSaving}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-emerald-600 hover:bg-emerald-700 dark:text-gray-200 dark:hover:text-gray-200 dark:bg-emerald-800 dark:hover:bg-emerald-900"
             >
               {isSaving ? (
                 <div className="flex items-center">
@@ -294,10 +391,10 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
                   Kaydediliyor...
                 </div>
               ) : (
-                <>
+                <div className="flex items-center">
                   <Save className="h-4 w-4 mr-2" />
                   Kaydet
-                </>
+                </div>
               )}
             </Button>
           </div>
@@ -329,7 +426,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
                   value={note.title || ""}
                   onChange={handleInputChange}
                   placeholder="Not başlığı"
-                  className="text-lg text-gray-800 font-medium border-0 p-0 focus-visible:ring-0 dark:bg-transparent"
+                  className="text-lg text-gray-800 dark:text-gray-200 font-medium border-0 p-0 focus-visible:ring-0 dark:bg-transparent"
                 />
               </div>
               
@@ -341,7 +438,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
                         variant={note.isPinned ? "default" : "outline"} 
                         size="sm" 
                         onClick={togglePin}
-                        className={note.isPinned ? "bg-black hover:bg-gray-800" : ""}
+                        className={note.isPinned ? "bg-black hover:bg-gray-800 dark:text-gray-200 dark:hover:text-gray-200" : ""}
                       >
                         {note.isPinned ? "Sabitlendi" : "Sabitle"}
                       </Button>
@@ -354,7 +451,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
                 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="dark:text-gray-200 dark:hover:text-gray-200">
                       Renk
                     </Button>
                   </PopoverTrigger>
@@ -388,7 +485,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
             
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="w-full sm:w-1/3">
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
                   Kategori
                 </label>
                 {showAddCategory ? (
@@ -417,7 +514,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
                   </div>
                 ) : (
                   <Select value={note.category} onValueChange={handleCategoryChange}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full dark: text-gray-50">
                       <SelectValue placeholder="Kategori seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -435,7 +532,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
               </div>
               
               <div className="w-full sm:w-2/3">
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
                   Etiketler
                 </label>
                 <div className="flex items-center">

@@ -16,7 +16,8 @@ import {
   Pencil,
   Tags,
   SlidersHorizontal,
-  X
+  X,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,7 +230,7 @@ export default function NotesPage() {
                 placeholder="Notlarınızda arayın..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="pl-10"
+                className="pl-10 dark:text-gray-200 dark:placeholder:text-gray-200"
               />
               {searchTerm && (
                 <button
@@ -244,7 +245,7 @@ export default function NotesPage() {
             <div className="flex space-x-2">
               <Sheet open={showFilters} onOpenChange={setShowFilters}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" className="flex items-center whitespace-nowrap">
+                  <Button variant="outline" className="flex items-center whitespace-nowrap dark:text-gray-200 dark:hover:text-gray-200">
                     <Filter className="h-4 w-4 mr-2" />
                     Filtreler
                     {(selectedCategory || selectedTags.length > 0) && (
@@ -262,7 +263,7 @@ export default function NotesPage() {
                   <div className="mt-6 space-y-6">
                     {/* Category Filter */}
                     <div>
-                      <h3 className="text-sm font-medium mb-3 text-gray-800">Kategori</h3>
+                      <h3 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-200">Kategori</h3>
                       <div className="flex flex-wrap gap-2">
                         <Badge
                           key="all"
@@ -276,7 +277,7 @@ export default function NotesPage() {
                           <Badge
                             key={category}
                             variant={selectedCategory === category ? "default" : "outline"}
-                            className={`cursor-pointer ${selectedCategory === category ? "bg-black" : ""}`}
+                            className={`cursor-pointer ${selectedCategory === category ? "bg-black text-white" : ""}`}
                             onClick={() => handleCategoryChange(category)}
                           >
                             {category}
@@ -297,7 +298,7 @@ export default function NotesPage() {
                             <Badge
                               key={tag}
                               variant={selectedTags.includes(tag) ? "default" : "outline"}
-                              className={`cursor-pointer ${selectedTags.includes(tag) ? "bg-black" : ""}`}
+                              className={`cursor-pointer ${selectedTags.includes(tag) ? "bg-black text-white" : ""}`}
                               onClick={() => handleTagToggle(tag)}
                             >
                               {tag}
@@ -309,7 +310,7 @@ export default function NotesPage() {
                     
                     {/* Sort Options */}
                     <div>
-                      <h3 className="text-sm font-medium mb-3 text-gray-800">Sıralama</h3>
+                      <h3 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-200 dark:hover:text-gray-200">Sıralama</h3>
                       <Select 
                         value={`${sortBy}-${sortDirection}`}
                         onValueChange={handleSortChange}
@@ -330,12 +331,12 @@ export default function NotesPage() {
                     
                     {/* View Mode */}
                     <div>
-                      <h3 className="text-sm font-medium mb-3 text-gray-800">Görünüm</h3>
+                      <h3 className="text-sm font-medium mb-3 text-gray-800 dark:text-gray-200">Görünüm</h3>
                       <div className="flex space-x-2">
                         <Button 
                           variant={viewMode === 'grid' ? "default" : "outline"}
                           size="sm"
-                          className="flex-1 text-gray-800 hover:text-white hover:bg-emerald-600"
+                          className="flex-1 text-gray-200 dark:text-gray-200 hover:text-white hover:bg-emerald-600"
                           onClick={() => setViewMode('grid')}
                         >
                           Izgara
@@ -343,7 +344,7 @@ export default function NotesPage() {
                         <Button 
                           variant={viewMode === 'list' ? "default" : "outline"}
                           size="sm"
-                          className="flex-1 text-gray-800 hover:text-white hover:bg-emerald-600"
+                          className="flex-1 text-gray-800 dark:text-gray-200 hover:text-white hover:bg-emerald-600"
                           onClick={() => setViewMode('list')}
                         >
                           Liste
@@ -355,7 +356,7 @@ export default function NotesPage() {
                     {(selectedCategory || selectedTags.length > 0 || sortBy !== 'updatedAt' || sortDirection !== 'desc') && (
                       <Button 
                         variant="ghost" 
-                        className="w-full" 
+                        className="w-full dark:text-gray-200 dark:hover:text-gray-200 text-white bg-emerald-600 hover:text-white hover:bg-emerald-700 dark:bg-emerald-800" 
                         onClick={resetFilters}
                       >
                         Filtreleri Sıfırla
@@ -366,7 +367,7 @@ export default function NotesPage() {
               </Sheet>
               
               <Select value={`${sortBy}-${sortDirection}`} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-[180px] md:w-[220px]">
+                <SelectTrigger className="w-[180px] md:w-[220px] dark:text-gray-200 dark:hover:text-gray-200">
                   <SelectValue placeholder="Sıralama seçin" />
                 </SelectTrigger>
                 <SelectContent>
@@ -420,7 +421,7 @@ export default function NotesPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 text-xs"
+                className="h-7 px-2 text-xs dark:text-gray-200 dark:hover:text-gray-200"
                 onClick={resetFilters}
               >
                 Temizle
@@ -443,7 +444,7 @@ export default function NotesPage() {
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
                   Farklı anahtar kelimeler veya filtreler deneyin
                 </p>
-                <Button onClick={resetFilters} variant="outline">Filtreleri Temizle</Button>
+                <Button onClick={resetFilters} variant="outline" className="dark:text-gray-200 dark:hover:text-gray-200">Filtreleri Temizle</Button>
               </>
             ) : (
               <>
@@ -509,12 +510,12 @@ export default function NotesPage() {
                               <DropdownMenuItem onClick={() => handleTogglePin(note.id)}>
                                 {note.isPinned ? (
                                   <>
-                                    <PinOff className="h-4 w-4 mr-2" />
+                                    <PinOff className="h-4 w-4 mr-2 dark:text-gray-200" />
                                     Sabitlemeyi Kaldır
                                   </>
                                 ) : (
                                   <>
-                                    <Pin className="h-4 w-4 mr-2" />
+                                    <Pin className="h-4 w-4 mr-2 dark:text-gray-200" />
                                     Sabitle
                                   </>
                                 )}
