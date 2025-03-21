@@ -149,3 +149,72 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Page Transition Loader */
+.loader {
+  width: 64px;
+  height: 64px;
+  position: relative;
+  animation: rotate 1.5s ease-in infinite alternate;
+}
+.loader::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  color: #10b981; /* emerald-500 */
+  background: currentColor;
+  width: 64px;
+  height: 32px;
+  border-radius: 0 0 50px 50px;
+}
+.loader::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  background: #FFF;
+  width: 8px;
+  height: 64px;
+  animation: rotate 1.2s linear infinite alternate-reverse;
+}
+
+@keyframes rotate {
+  100% { transform: rotate(360deg)}
+}
+
+.dark .loader::before {
+  color: #34d399; /* emerald-400 for dark mode */
+}
+
+.dark .loader::after {
+  background: #1f2937; /* gray-800 for dark mode */
+}
+
+/* Text animation for loader */
+.animate-pulse-text span {
+  display: inline-block;
+  animation: pulse-text 1.2s infinite alternate;
+  transform-origin: center;
+}
+
+@keyframes pulse-text {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.animation-delay-100 { animation-delay: 0.1s; }
+.animation-delay-200 { animation-delay: 0.2s; }
+.animation-delay-300 { animation-delay: 0.3s; }
+.animation-delay-400 { animation-delay: 0.4s; }
+.animation-delay-500 { animation-delay: 0.5s; }
+.animation-delay-600 { animation-delay: 0.6s; }
+.animation-delay-700 { animation-delay: 0.7s; }
+.animation-delay-800 { animation-delay: 0.8s; }
+.animation-delay-900 { animation-delay: 0.9s; }

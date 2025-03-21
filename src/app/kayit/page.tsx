@@ -6,8 +6,8 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserPlus, AlertCircle } from "lucide-react";
-import { IslamicLoader } from "@/components/ui/loading";
+import { LogIn, User, Mail, AlertCircle } from "lucide-react";
+import { FullPageLoader } from "@/components/ui/loading";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,7 +56,7 @@ export default function RegisterPage() {
 
         {isLoading && (
           <div className="flex justify-center py-4">
-            <IslamicLoader size="sm" text="Hesabınız oluşturuluyor..." />
+            <FullPageLoader size="sm" text="Hesabınız oluşturuluyor..." />
           </div>
         )}
 
@@ -151,7 +151,7 @@ export default function RegisterPage() {
             className="w-full"
             disabled={isLoading}
           >
-            <UserPlus className="h-5 w-5" />
+            <User className="h-5 w-5" />
             Kaydol
           </Button>
         </form>

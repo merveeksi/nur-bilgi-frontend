@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { IslamicLoader } from "@/components/ui/loading";
+import { FullPageLoader } from "@/components/ui/loading";
+import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -77,7 +79,7 @@ export default function SettingsPage() {
   if (!isLoggedIn || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <IslamicLoader size="lg" text="Hesap ayarları yükleniyor..." />
+        <FullPageLoader size="lg" text="Hesap ayarları yükleniyor..." />
       </div>
     );
   }
@@ -114,7 +116,7 @@ export default function SettingsPage() {
 
         {isUpdating && (
           <div className="mb-6 flex justify-center">
-            <IslamicLoader size="sm" text="Bilgileriniz güncelleniyor..." />
+            <FullPageLoader size="sm" text="Bilgileriniz güncelleniyor..." />
           </div>
         )}
 

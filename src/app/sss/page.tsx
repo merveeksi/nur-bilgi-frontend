@@ -264,6 +264,13 @@ export default function SSSPage() {
             </div>
           )}
         </div>
+        
+        {/* Bizimle İletişime Geçin */}
+        <div className="container mx-auto mt-12 text-center">
+          <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-4">Bizimle İletişime Geçin</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Sorularınız veya önerileriniz için bizimle iletişime geçmekten çekinmeyin.</p>
+          <button onClick={() => window.location.href = '/hakkimizda'} className="font-bold bg-emerald-600 text-white px-4 py-2 rounded-md dark:bg-emerald-700 hover:bg-emerald-700">İletişime Geç</button>
+        </div>
       </div>
     </div>
   );

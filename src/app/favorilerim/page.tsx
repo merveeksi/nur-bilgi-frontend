@@ -8,7 +8,7 @@ import {
   DailyDua 
 } from "@/services/duaService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, BookMarked, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, BookMarked, ChevronDown, ChevronUp, BookText } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface HadisItem {
@@ -21,9 +21,17 @@ interface HadisItem {
   explanation: string;
 }
 
+interface EsmaItem {
+  id: number;
+  arabic: string;
+  turkish: string;
+  meaning: string;
+}
+
 export default function FavorilerimPage() {
   const [duaFavorites, setDuaFavorites] = useState<Dua[]>([]);
   const [hadiFavorites, setHadisFavorites] = useState<HadisItem[]>([]);
+  const [esmaFavorites, setEsmaFavorites] = useState<EsmaItem[]>([]);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<string>("dualar");
   
@@ -69,6 +77,109 @@ export default function FavorilerimPage() {
     }
   };
 
+  // Esmaül Hüsna veri kümesi
+  const esmaData: EsmaItem[] = [
+    { id: 1, arabic: "الله", turkish: "Allah", meaning: "Varlığı zaruri olan ve bütün hamdediş ve övgülere layık bulunan." },
+    { id: 2, arabic: "الرحمن", turkish: "Er-Rahman", meaning: "Pek merhametli, çok merhametli." },
+    { id: 3, arabic: "الرحيم", turkish: "Er-Rahim", meaning: "Çok merhamet edici." },
+    { id: 4, arabic: "الملك", turkish: "El-Melik", meaning: "Mülkün, her varlığın sahibi." },
+    { id: 5, arabic: "القدّوس", turkish: "El-Kuddüs", meaning: "Her türlü eksiklikten uzak olan, temiz, kutsal." },
+    { id: 6, arabic: "السلام", turkish: "Es-Selam", meaning: "Her türlü tehlikelerden selamete çıkaran." },
+    { id: 7, arabic: "المؤمن", turkish: "El-Mü'min", meaning: "Güven veren, emin kılan." },
+    { id: 8, arabic: "المهيمن", turkish: "El-Müheymin", meaning: "Her şeyi gözeten, koruyan." },
+    { id: 9, arabic: "العزيز", turkish: "El-Aziz", meaning: "Üstün, galip, güçlü, yenilmez." },
+    { id: 10, arabic: "الجبّار", turkish: "El-Cebbar", meaning: "İradesini her durumda yürüten." },
+    { id: 11, arabic: "المتكبّر", turkish: "El-Mütekebbir", meaning: "Büyüklükte eşi olmayan." },
+    { id: 12, arabic: "الخالق", turkish: "El-Halik", meaning: "Yaratan, yoktan var eden." },
+    { id: 13, arabic: "البارئ", turkish: "El-Bari", meaning: "Her şeyi kusursuzca yaratan." },
+    { id: 14, arabic: "المصوّر", turkish: "El-Musavvir", meaning: "Her şeye şekil veren." },
+    { id: 15, arabic: "الغفّار", turkish: "El-Gaffar", meaning: "Günahları örten ve çok bağışlayan." },
+    { id: 16, arabic: "القهّار", turkish: "El-Kahhar", meaning: "Her şeyin üzerinde ezici güce sahip olan." },
+    { id: 17, arabic: "الوهّاب", turkish: "El-Vehhab", meaning: "Karşılıksız veren." },
+    { id: 18, arabic: "الرزّاق", turkish: "Er-Rezzak", meaning: "Rızık veren." },
+    { id: 19, arabic: "الفتّاح", turkish: "El-Fettah", meaning: "Açan, çözümleyen." },
+    { id: 20, arabic: "العليم", turkish: "El-Alim", meaning: "Her şeyi bilen." },
+    { id: 21, arabic: "القابض", turkish: "El-Kabid", meaning: "Dilediğine darlık veren." },
+    { id: 22, arabic: "الباسط", turkish: "El-Basit", meaning: "Dilediğine genişlik, bolluk veren." },
+    { id: 23, arabic: "الخافض", turkish: "El-Hafid", meaning: "Alçaltan." },
+    { id: 24, arabic: "الرافع", turkish: "Er-Rafi", meaning: "Yükselten." },
+    { id: 25, arabic: "المعزّ", turkish: "El-Muiz", meaning: "Şeref ve kuvvet veren." },
+    { id: 26, arabic: "المذلّ", turkish: "El-Muzil", meaning: "Zelil kılan, alçaltan." },
+    { id: 27, arabic: "السميع", turkish: "Es-Semi", meaning: "Her şeyi işiten." },
+    { id: 28, arabic: "البصير", turkish: "El-Basir", meaning: "Her şeyi gören." },
+    { id: 29, arabic: "الحكم", turkish: "El-Hakem", meaning: "Hükmeden, hakkı yerine getiren." },
+    { id: 30, arabic: "العدل", turkish: "El-Adl", meaning: "Mutlak adil." },
+    { id: 31, arabic: "اللطيف", turkish: "El-Latif", meaning: "En ince işlerin bütün inceliklerini bilen." },
+    { id: 32, arabic: "الخبير", turkish: "El-Habir", meaning: "Her şeyden haberdar olan." },
+    { id: 33, arabic: "الحليم", turkish: "El-Halim", meaning: "Yumuşak davranan, cezada acele etmeyen." },
+    { id: 34, arabic: "العظيم", turkish: "El-Azim", meaning: "Büyüklükte sonu olmayan." },
+    { id: 35, arabic: "الغفور", turkish: "El-Gafur", meaning: "Çok bağışlayıcı." },
+    { id: 36, arabic: "الشكور", turkish: "Eş-Şekur", meaning: "Az iyiliğe çok mükâfat veren." },
+    { id: 37, arabic: "العلي", turkish: "El-Aliyy", meaning: "Yüceler yücesi." },
+    { id: 38, arabic: "الكبير", turkish: "El-Kebir", meaning: "Büyüklükte benzeri olmayan." },
+    { id: 39, arabic: "الحفيظ", turkish: "El-Hafiz", meaning: "Koruyucu." },
+    { id: 40, arabic: "المقيت", turkish: "El-Mukit", meaning: "Rızıkları yaratan ve ihtiyacı olanlara ulaştıran." },
+    { id: 41, arabic: "الحسيب", turkish: "El-Hasib", meaning: "Hesaba çeken." },
+    { id: 42, arabic: "الجليل", turkish: "El-Celil", meaning: "Celal ve azamet sahibi." },
+    { id: 43, arabic: "الكريم", turkish: "El-Kerim", meaning: "Çok cömert, çok ikram eden." },
+    { id: 44, arabic: "الرقيب", turkish: "Er-Rakib", meaning: "Her an gözetleyen." },
+    { id: 45, arabic: "المجيب", turkish: "El-Mucib", meaning: "Duaları kabul eden." },
+    { id: 46, arabic: "الواسع", turkish: "El-Vasi", meaning: "İlmi ve rahmeti her şeyi kuşatan." },
+    { id: 47, arabic: "الحكيم", turkish: "El-Hakim", meaning: "Her işi hikmetli olan." },
+    { id: 48, arabic: "الودود", turkish: "El-Vedud", meaning: "Çok seven, çok sevilen." },
+    { id: 49, arabic: "المجيد", turkish: "El-Mecid", meaning: "Şanı yüce olan." },
+    { id: 50, arabic: "الباعث", turkish: "El-Bais", meaning: "Ölüleri dirilten." },
+    { id: 51, arabic: "الشهيد", turkish: "Eş-Şehid", meaning: "Her şeye şahit olan." },
+    { id: 52, arabic: "الحق", turkish: "El-Hakk", meaning: "Varlığı değişmez olan gerçek." },
+    { id: 53, arabic: "الوكيل", turkish: "El-Vekil", meaning: "Kendisine tevekkül edenlerin işlerini yoluna koyan." },
+    { id: 54, arabic: "القوي", turkish: "El-Kaviyy", meaning: "Kudret sahibi." },
+    { id: 55, arabic: "المتين", turkish: "El-Metin", meaning: "Kuvvet ve kudret menbaı." },
+    { id: 56, arabic: "الولي", turkish: "El-Veliyy", meaning: "Dost, yardımcı." },
+    { id: 57, arabic: "الحميد", turkish: "El-Hamid", meaning: "Övgüye lâyık." },
+    { id: 58, arabic: "المحصي", turkish: "El-Muhsi", meaning: "Her şeyi tek tek sayan, bilen." },
+    { id: 59, arabic: "المبدئ", turkish: "El-Mübdi", meaning: "Maddesiz ve örneksiz yaratan." },
+    { id: 60, arabic: "المعيد", turkish: "El-Muid", meaning: "Yok olanı tekrar var eden." },
+    { id: 61, arabic: "المحيي", turkish: "El-Muhyi", meaning: "Can veren, dirilten." },
+    { id: 62, arabic: "المميت", turkish: "El-Mümit", meaning: "Ölümü yaratan." },
+    { id: 63, arabic: "الحي", turkish: "El-Hayy", meaning: "Diri, canlı, hayat sahibi." },
+    { id: 64, arabic: "القيوم", turkish: "El-Kayyum", meaning: "Zatı ile var olan ve her şeyi varlıkta tutan." },
+    { id: 65, arabic: "الواجد", turkish: "El-Vacid", meaning: "Dilediğini dilediği anda bulan." },
+    { id: 66, arabic: "الماجد", turkish: "El-Macid", meaning: "Şanı, izzet ve şerefi çok yüce olan." },
+    { id: 67, arabic: "الواحد", turkish: "El-Vahid", meaning: "Tek olan, bir olan." },
+    { id: 68, arabic: "الصمد", turkish: "Es-Samed", meaning: "Hiçbir şeye muhtaç olmayan." },
+    { id: 69, arabic: "القادر", turkish: "El-Kadir", meaning: "Güç yetiren, ölçüyle yaratan." },
+    { id: 70, arabic: "المقتدر", turkish: "El-Muktedir", meaning: "Dilediği gibi tasarruf eden." },
+    { id: 71, arabic: "المقدم", turkish: "El-Mukaddim", meaning: "İstediğini öne alan." },
+    { id: 72, arabic: "المؤخر", turkish: "El-Muahhir", meaning: "İstediğini arkaya bırakan." },
+    { id: 73, arabic: "الأول", turkish: "El-Evvel", meaning: "İlk." },
+    { id: 74, arabic: "الآخر", turkish: "El-Ahir", meaning: "Son." },
+    { id: 75, arabic: "الظاهر", turkish: "Ez-Zahir", meaning: "Varlığı açık, aşikâr." },
+    { id: 76, arabic: "الباطن", turkish: "El-Batın", meaning: "Gizli, görünmeyen, aklın kavrayamayacağı." },
+    { id: 77, arabic: "الوالي", turkish: "El-Vali", meaning: "Kâinatı idare eden." },
+    { id: 78, arabic: "المتعال", turkish: "El-Müteali", meaning: "Son derece yüce." },
+    { id: 79, arabic: "البر", turkish: "El-Berr", meaning: "İyilik ve ihsanı bol." },
+    { id: 80, arabic: "التواب", turkish: "Et-Tevvab", meaning: "Tevbeleri kabul eden." },
+    { id: 81, arabic: "المنتقم", turkish: "El-Müntakim", meaning: "Suçluları cezalandıran." },
+    { id: 82, arabic: "العفو", turkish: "El-Afüvv", meaning: "Affeden, bağışlayan." },
+    { id: 83, arabic: "الرؤوف", turkish: "Er-Rauf", meaning: "Çok şefkatli." },
+    { id: 84, arabic: "مالك الملك", turkish: "Malik'ül-Mülk", meaning: "Mülkün gerçek sahibi." },
+    { id: 85, arabic: "ذو الجلال والإكرام", turkish: "Zül-Celali vel-İkram", meaning: "Celal, azamet ve kerem sahibi." },
+    { id: 86, arabic: "المقسط", turkish: "El-Muksit", meaning: "Adaletle hükmeden." },
+    { id: 87, arabic: "الجامع", turkish: "El-Cami", meaning: "İstediğini bir araya toplayan." },
+    { id: 88, arabic: "الغني", turkish: "El-Ganiyy", meaning: "Zengin, hiçbir şeye muhtaç olmayan." },
+    { id: 89, arabic: "المغني", turkish: "El-Mugni", meaning: "Müstağni kılan, zengin eden." },
+    { id: 90, arabic: "المانع", turkish: "El-Mani", meaning: "Dilemediği şeye mani olan, engelleyen." },
+    { id: 91, arabic: "الضار", turkish: "Ed-Darr", meaning: "Zarar verenlerin zarar vermesini yaratan." },
+    { id: 92, arabic: "النافع", turkish: "En-Nafi", meaning: "Fayda veren." },
+    { id: 93, arabic: "النور", turkish: "En-Nur", meaning: "Aydınlatan, nur kaynağı." },
+    { id: 94, arabic: "الهادي", turkish: "El-Hadi", meaning: "Hidayet veren." },
+    { id: 95, arabic: "البديع", turkish: "El-Bedi", meaning: "Eşi ve örneği olmayan." },
+    { id: 96, arabic: "الباقي", turkish: "El-Baki", meaning: "Varlığının sonu olmayan." },
+    { id: 97, arabic: "الوارث", turkish: "El-Varis", meaning: "Her şeyin asıl ve gerçek sahibi." },
+    { id: 98, arabic: "الرشيد", turkish: "Er-Reşid", meaning: "Doğru yolu gösteren." },
+    { id: 99, arabic: "الصبور", turkish: "Es-Sabur", meaning: "Çok sabırlı olan." }
+  ];
+
   useEffect(() => {
     // Favorileri localStorage'dan yükle
     loadFavorites();
@@ -91,6 +202,14 @@ export default function FavorilerimPage() {
       const favoriteHadisler = hadisIds.map(id => hadisData[id]).filter(Boolean);
       setHadisFavorites(favoriteHadisler);
     }
+
+    // Esmaül Hüsna favorilerini yükle
+    const storedEsmaFavorites = localStorage.getItem('favoriteEsma');
+    if (storedEsmaFavorites) {
+      const esmaIds = JSON.parse(storedEsmaFavorites) as number[];
+      const favoriteEsma = esmaData.filter(esma => esmaIds.includes(esma.id));
+      setEsmaFavorites(favoriteEsma);
+    }
   };
 
   const toggleExpand = (id: string) => {
@@ -100,7 +219,7 @@ export default function FavorilerimPage() {
     }));
   };
 
-  const removeFromFavorites = (id: string, type: 'dua' | 'hadis') => {
+  const removeFromFavorites = (id: string | number, type: 'dua' | 'hadis' | 'esma') => {
     if (type === 'dua') {
       const storedFavorites = localStorage.getItem('favoriteDualar');
       if (storedFavorites) {
@@ -109,13 +228,21 @@ export default function FavorilerimPage() {
         localStorage.setItem('favoriteDualar', JSON.stringify(newFavorites));
         setDuaFavorites(prev => prev.filter(dua => dua.id !== id));
       }
-    } else {
+    } else if (type === 'hadis') {
       const storedFavorites = localStorage.getItem('favoriteHadisler');
       if (storedFavorites) {
         const favorites = JSON.parse(storedFavorites) as string[];
         const newFavorites = favorites.filter(favId => favId !== id);
         localStorage.setItem('favoriteHadisler', JSON.stringify(newFavorites));
         setHadisFavorites(prev => prev.filter(hadis => hadis.id !== id));
+      }
+    } else if (type === 'esma') {
+      const storedFavorites = localStorage.getItem('favoriteEsma');
+      if (storedFavorites) {
+        const favorites = JSON.parse(storedFavorites) as number[];
+        const newFavorites = favorites.filter(favId => favId !== id);
+        localStorage.setItem('favoriteEsma', JSON.stringify(newFavorites));
+        setEsmaFavorites(prev => prev.filter(esma => esma.id !== id as number));
       }
     }
   };
@@ -129,20 +256,24 @@ export default function FavorilerimPage() {
               Favorilerim
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-4 md:mb-0">
-              Kaydettiğiniz dua ve hadisler
+              Kaydettiğiniz dua, hadis ve esmaül hüsna
             </p>
           </div>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="dualar" className="text-base font-medium">
+          <TabsList className="grid w-full grid-cols-3 mb-8 bg-emerald-50 dark:bg-emerald-900">
+            <TabsTrigger value="dualar" className="text-base font-medium data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
               <BookOpen className="h-4 w-4 mr-2" />
               Dualar
             </TabsTrigger>
-            <TabsTrigger value="hadisler" className="text-base font-medium">
+            <TabsTrigger value="hadisler" className="text-base font-medium data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
               <BookMarked className="h-4 w-4 mr-2" />
               Hadisler
+            </TabsTrigger>
+            <TabsTrigger value="esmaul-husna" className="text-base font-medium data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
+              <BookText className="h-4 w-4 mr-2" />
+              Esmaül Hüsna
             </TabsTrigger>
           </TabsList>
           
@@ -355,6 +486,98 @@ export default function FavorilerimPage() {
                                 </p>
                               </div>
                             )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          {/* Esmaül Hüsna Tab */}
+          <TabsContent value="esmaul-husna" className="space-y-6">
+            {esmaFavorites.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center shadow-sm border border-gray-100 dark:border-gray-700">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Favori esmaül hüsnanız bulunmamaktadır.</p>
+                <a href="/diger-hizmetler/esmaul-husna" className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors">
+                  Esmaül Hüsna Sayfasına Git
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {esmaFavorites.map((esma) => (
+                  <motion.div
+                    key={esma.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+                  >
+                    <div
+                      onClick={() => toggleExpand(esma.id.toString())}
+                      className="w-full flex items-center justify-between p-5 text-left cursor-pointer"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300">
+                            <BookText className="h-5 w-5" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            {esma.turkish}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {esma.meaning.substring(0, 60)}{esma.meaning.length > 60 ? "..." : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <span 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFromFavorites(esma.id, 'esma');
+                          }}
+                          className="mr-3 text-gray-400 hover:text-red-500 focus:outline-none cursor-pointer"
+                          aria-label="Favorilerden çıkar"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                          </svg>
+                        </span>
+                        {expandedItems[esma.id.toString()] ? (
+                          <ChevronUp className="h-5 w-5 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+
+                    <AnimatePresence>
+                      {expandedItems[esma.id.toString()] && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="border-t border-gray-100 dark:border-gray-700"
+                        >
+                          <div className="p-5 space-y-4">
+                            <p className="text-right text-gray-800 dark:text-gray-200 text-xl font-arabic leading-relaxed tracking-wider mb-4">
+                              {esma.arabic}
+                            </p>
+                            
+                            <p className="text-gray-800 dark:text-gray-200 font-medium">
+                              {esma.turkish}
+                            </p>
+                            
+                            <p className="text-gray-700 dark:text-gray-300">
+                              <span className="font-medium">Anlamı:</span>{" "}
+                              {esma.meaning}
+                            </p>
                           </div>
                         </motion.div>
                       )}

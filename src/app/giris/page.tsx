@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogIn, User, AlertCircle } from "lucide-react";
-import { IslamicLoader } from "@/components/ui/loading";
+import { FullPageLoader } from "@/components/ui/loading";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function LoginPage() {
 
         {isLoading && (
           <div className="flex justify-center py-4">
-            <IslamicLoader size="sm" text="Giriş yapılıyor..." />
+            <FullPageLoader size="sm" text="Giriş yapılıyor..." />
           </div>
         )}
 

@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { User, Mail, AtSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { IslamicLoader } from "@/components/ui/loading";
+import { FullPageLoader } from "@/components/ui/loading";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function ProfilePage() {
   if (!isLoggedIn || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <IslamicLoader size="lg" text="Profil bilgileri yükleniyor..." />
+        <FullPageLoader size="lg" text="Profil bilgileri yükleniyor..." />
       </div>
     );
   }

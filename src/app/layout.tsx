@@ -4,10 +4,12 @@ import './globals.css'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { LoadingProvider } from '@/contexts/LoadingContext'
+import { NavigationEventsProvider } from '@/contexts/NavigationEvents'
 import dynamic from 'next/dynamic'
 import Footer from '@/components/Footers/footer'
 import SocialSidebar from '@/components/Icons/SocialSidebar'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
+import PageTransitionLoader from '@/components/ui/loading/PageTransitionLoader'
 
 // Navbar bileşenini dinamik olarak import ediyoruz
 const Navbar = dynamic(() => import('@/components/Headers/navbar'), {
@@ -32,18 +34,21 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <LoadingProvider>
-              {/* Navbar - arka plan rengi ve pozisyonu düzeltildi */}
-              <div className="sticky top-0 z-50 w-full px-4 py-2">
-                <Navbar />
-              </div>
-              
-              {/* Main content - üst paddingden kurtulduk */}
-              <main className="min-h-screen">
-                <ThemeSwitcher />
-                <SocialSidebar />
-                {children}
-              </main>
-              <Footer />
+              <NavigationEventsProvider>
+                {/* Navbar - arka plan rengi ve pozisyonu düzeltildi */}
+                <div className="sticky top-0 z-50 w-full px-4 py-2">
+                  <Navbar />
+                </div>
+                
+                {/* Main content - üst paddingden kurtulduk */}
+                <main className="min-h-screen">
+                  <ThemeSwitcher />
+                  <SocialSidebar />
+                  {children}
+                </main>
+                <Footer />
+                <PageTransitionLoader />
+              </NavigationEventsProvider>
             </LoadingProvider>
           </AuthProvider>
         </ThemeProvider>
