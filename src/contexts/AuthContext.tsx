@@ -1,15 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { login as loginService, register as registerService, logout as logoutService, getCurrentUser, isAuthenticated } from "@/services/authService";
-
-// Define user type
-interface User {
-  id: string;
-  username: string;
-  name: string;
-  email: string;
-}
+import { login as loginService, register as registerService, logout as logoutService, getCurrentUser, isAuthenticated, User } from "@/services/authService";
 
 // Define auth context type
 interface AuthContextType {
@@ -79,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const newUser = await registerService({ name, email, password });
+      const newUser = await registerService({ firstName: name.split(' ')[0], lastName: name.split(' ')[1] || '', email, password });
       setUser(newUser);
     } catch (error) {
       setError((error as Error).message);

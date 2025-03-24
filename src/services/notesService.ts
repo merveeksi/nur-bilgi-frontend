@@ -1,5 +1,7 @@
 // Notes Service for managing user notes
 
+import { api } from './apiClient';
+
 export interface Note {
   id: string;
   title: string;
@@ -10,10 +12,29 @@ export interface Note {
   updatedAt: string;
   isPinned: boolean;
   color?: string;
+  createdOn?: string;
+  modifiedOn?: string;
 }
 
-// Storage keys
-const NOTES_STORAGE_KEY = 'nur-bilgi-notes';
+export interface CreateNoteRequest {
+  title: string;
+  content: string;
+  category?: string;
+  tags?: string[];
+}
+
+export interface UpdateNoteRequest {
+  id: string;
+  title: string;
+  content: string;
+  category?: string;
+  tags?: string[];
+  isPinned?: boolean;
+  color?: string;
+}
+
+// Local storage key
+const NOTES_STORAGE_KEY = 'nur_bilgi_notes';
 
 // Default categories
 export const DEFAULT_CATEGORIES = [
@@ -37,41 +58,120 @@ export const NOTE_COLORS = [
   { name: 'Sarı', value: 'bg-yellow-50 dark:bg-yellow-900/20' },
 ];
 
-// Get all notes from localStorage
-export const getAllNotes = (): Note[] => {
+/**
+ * API İLE İLETİŞİM FONKSİYONLARI
+ */
+
+// Tüm notları API'den getir
+export const getNotes = async (): Promise<Note[]> => {
+  try {
+    return await api.get<Note[]>('/notes');
+  } catch (error) {
+    console.error('Notlar getirilirken hata oluştu:', error);
+    // API başarısız olursa localStorage'a dön
+    return getAllNotesFromStorage();
+  }
+};
+
+// ID'ye göre not getir
+export const getNoteById = async (id: string): Promise<Note | undefined> => {
+  try {
+    return await api.get<Note>(`/notes/${id}`);
+  } catch (error) {
+    console.log('API erişilemedi, localStorage kullanılıyor', error);
+    // API başarısız olursa localStorage'dan al
+    const notes = getAllNotesFromStorage();
+    return notes.find(note => note.id === id);
+  }
+};
+
+// Not oluştur
+export const createNote = async (note: CreateNoteRequest): Promise<Note> => {
+  try {
+    return await api.post<Note>('/notes', note);
+  } catch (error) {
+    console.log('API erişilemedi, localStorage kullanılıyor', error);
+    // API başarısız olursa localStorage'a ekle
+    return addNoteToStorage(note);
+  }
+};
+
+// Not güncelle
+export const updateNote = async (id: string, updates: Partial<UpdateNoteRequest>): Promise<Note | null> => {
+  try {
+    return await api.put<Note>(`/notes/${id}`, {
+      id,
+      ...updates
+    });
+  } catch (error) {
+    console.log('API erişilemedi, localStorage kullanılıyor', error);
+    // API başarısız olursa localStorage'da güncelle
+    return updateNoteInStorage(id, updates);
+  }
+};
+
+// Not sil
+export const deleteNote = async (id: string): Promise<boolean> => {
+  try {
+    await api.delete(`/notes/${id}`);
+    return true;
+  } catch (error) {
+    console.log('API erişilemedi, localStorage kullanılıyor', error);
+    // API başarısız olursa localStorage'dan sil
+    return deleteNoteFromStorage(id);
+  }
+};
+
+// Pin durumunu değiştir
+export const togglePinNote = async (id: string): Promise<Note | null> => {
+  const note = await getNoteById(id);
+  if (!note) return null;
+  
+  return await updateNote(id, { isPinned: !note.isPinned });
+};
+
+/**
+ * LOCAL STORAGE YARDIMCI FONKSİYONLARI
+ */
+
+// localStorage'dan tüm notları al
+const getAllNotesFromStorage = (): Note[] => {
   if (typeof window === 'undefined') return [];
   
-  const notesJson = localStorage.getItem(NOTES_STORAGE_KEY);
-  return notesJson ? JSON.parse(notesJson) : [];
+  try {
+    const notesJson = localStorage.getItem(NOTES_STORAGE_KEY);
+    return notesJson ? JSON.parse(notesJson) : [];
+  } catch (error) {
+    console.error('Error loading notes from localStorage:', error);
+    return [];
+  }
 };
 
-// Get note by ID
-export const getNoteById = (id: string): Note | undefined => {
-  const notes = getAllNotes();
-  return notes.find(note => note.id === id);
-};
-
-// Add new note
-export const addNote = (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>): Note => {
-  const notes = getAllNotes();
-  
+// localStorage'a not ekle
+const addNoteToStorage = (note: CreateNoteRequest): Note => {
+  const notes = getAllNotesFromStorage();
   const now = new Date().toISOString();
+  
   const newNote: Note = {
-    id: `note-${Date.now()}`,
+    id: crypto.randomUUID(),
+    title: note.title,
+    content: note.content,
+    category: note.category || '',
+    tags: note.tags || [],
     createdAt: now,
     updatedAt: now,
-    ...note
+    isPinned: false,
   };
   
-  notes.push(newNote);
-  saveNotes(notes);
+  const updatedNotes = [newNote, ...notes];
+  saveNotesToStorage(updatedNotes);
   
   return newNote;
 };
 
-// Update existing note
-export const updateNote = (id: string, updates: Partial<Omit<Note, 'id' | 'createdAt'>>): Note | null => {
-  const notes = getAllNotes();
+// localStorage'daki notu güncelle
+const updateNoteInStorage = (id: string, updates: Partial<Omit<Note, 'id' | 'createdAt'>>): Note | null => {
+  const notes = getAllNotesFromStorage();
   const noteIndex = notes.findIndex(note => note.id === id);
   
   if (noteIndex === -1) return null;
@@ -83,76 +183,62 @@ export const updateNote = (id: string, updates: Partial<Omit<Note, 'id' | 'creat
   };
   
   notes[noteIndex] = updatedNote;
-  saveNotes(notes);
+  saveNotesToStorage(notes);
   
   return updatedNote;
 };
 
-// Delete note
-export const deleteNote = (id: string): boolean => {
-  const notes = getAllNotes();
+// localStorage'dan not sil
+const deleteNoteFromStorage = (id: string): boolean => {
+  const notes = getAllNotesFromStorage();
   const filteredNotes = notes.filter(note => note.id !== id);
   
-  if (filteredNotes.length === notes.length) {
-    return false; // Note not found
-  }
+  if (filteredNotes.length === notes.length) return false;
   
-  saveNotes(filteredNotes);
+  saveNotesToStorage(filteredNotes);
   return true;
 };
 
-// Pin/unpin note
-export const togglePinNote = (id: string): Note | null => {
-  const note = getNoteById(id);
-  if (!note) return null;
+// localStorage'a notları kaydet
+const saveNotesToStorage = (notes: Note[]): void => {
+  if (typeof window === 'undefined') return;
   
-  return updateNote(id, { isPinned: !note.isPinned });
+  try {
+    localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+    
+    // Notların güncellendiğini bildiren olay
+    window.dispatchEvent(new CustomEvent('notes-updated'));
+  } catch (error) {
+    console.error('Error saving notes to localStorage:', error);
+  }
 };
 
-// Get all unique categories from notes
-export const getAllCategories = (): string[] => {
-  const notes = getAllNotes();
-  const categories = new Set<string>();
-  
-  DEFAULT_CATEGORIES.forEach(category => categories.add(category));
-  notes.forEach(note => categories.add(note.category));
-  
-  return Array.from(categories);
-};
+/**
+ * FİLTRELEME VE SIRALAMA FONKSİYONLARI
+ */
 
-// Get all unique tags from notes
-export const getAllTags = (): string[] => {
-  const notes = getAllNotes();
-  const tags = new Set<string>();
-  
-  notes.forEach(note => {
-    note.tags.forEach(tag => tags.add(tag));
-  });
-  
-  return Array.from(tags);
-};
-
-// Filter notes by search term, category, and tags
-export const filterNotes = (
+// Notları filtreleme
+export const filterNotes = async (
   searchTerm: string = '',
   category: string | null = null,
   selectedTags: string[] = []
-): Note[] => {
-  let notes = getAllNotes();
+): Promise<Note[]> => {
+  // Önce tüm notları al (API veya localStorage'dan)
+  let notes = await getNotes();
   
-  // Filter by category
+  // Kategori ile filtrele
   if (category) {
     notes = notes.filter(note => note.category === category);
   }
   
-  // Filter by tags
+  // Etiketlerle filtrele
   if (selectedTags.length > 0) {
     notes = notes.filter(note => 
       selectedTags.every(tag => note.tags.includes(tag))
     );
   }
   
-  // Filter by search term
+  // Arama terimiyle filtrele
   if (searchTerm.trim()) {
     const searchTermLower = searchTerm.toLowerCase();
     notes = notes.filter(note => 
@@ -165,7 +251,7 @@ export const filterNotes = (
   return notes;
 };
 
-// Sort notes (pinned notes always come first)
+// Notları sırala (sabitlenmiş notlar her zaman önce gelir)
 export const sortNotes = (
   notes: Note[], 
   sortBy: 'createdAt' | 'updatedAt' | 'title' = 'updatedAt',
@@ -186,7 +272,7 @@ export const sortNotes = (
     }
   });
   
-  // Sort pinned notes using the same criteria, but keep them separate
+  // Sabitlenmiş notları aynı kriterlerle sırala, ancak ayrı tut
   const sortedPinnedNotes = [...pinnedNotes].sort((a, b) => {
     if (sortBy === 'title') {
       return sortDirection === 'asc' 
@@ -202,17 +288,21 @@ export const sortNotes = (
   return [...sortedPinnedNotes, ...sortedUnpinnedNotes];
 };
 
-// Private helper to save notes to localStorage
-const saveNotes = (notes: Note[]): void => {
-  if (typeof window === 'undefined') return;
+// Tüm kategorileri al
+export const getAllCategories = async (): Promise<string[]> => {
+  const notes = await getNotes();
+  const categories = new Set(notes.map(note => note.category).filter(Boolean));
+  return Array.from(categories);
+};
+
+// Tüm etiketleri al
+export const getAllTags = async (): Promise<string[]> => {
+  const notes = await getNotes();
+  const tagsSet = new Set<string>();
   
-  try {
-    localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
-    
-    // Dispatch a custom event to signal that notes have been updated
-    // This can be useful for synchronizing state across components
-    window.dispatchEvent(new CustomEvent('notes-updated'));
-  } catch (error) {
-    console.error('Error saving notes to localStorage:', error);
-  }
+  notes.forEach(note => {
+    note.tags.forEach(tag => tagsSet.add(tag));
+  });
+  
+  return Array.from(tagsSet);
 }; 

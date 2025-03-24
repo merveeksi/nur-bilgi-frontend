@@ -14,6 +14,11 @@ export default function UserProfileMenu() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Get display name based on available user fields
+  const displayName = user?.fullName || 
+                      (user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 
+                      user?.firstName || user?.lastName || user?.name || user?.username || 'Kullanıcı');
+
   const handleLogout = () => {
     showLoading("Çıkış yapılıyor...");
     logout();
@@ -61,14 +66,14 @@ export default function UserProfileMenu() {
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300">
           <User className="h-3 w-3" />
         </span>
-        <span className="max-w-[80px] truncate">{user?.name}</span>
+        <span className="max-w-[80px] truncate">{displayName}</span>
       </button>
 
       {isMenuOpen && (
         <div className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-lg bg-white p-2 shadow-lg ring-1 ring-gray-200 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
           <div className="border-b border-gray-100 px-3 py-2 dark:border-gray-700">
             <p className="font-medium text-gray-900 dark:text-white">
-              {user?.name}
+              {displayName}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
           </div>

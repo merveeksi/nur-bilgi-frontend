@@ -37,14 +37,6 @@ body {
   position: relative;
 }
 
-.islamic-pattern::before {
-  content: '☪';
-  position: absolute;
-  opacity: 0.05;
-  font-size: 15rem;
-  z-index: -1;
-  color: rgb(var(--primary-color));
-}
 
 /* Custom button styles */
 .btn-primary {

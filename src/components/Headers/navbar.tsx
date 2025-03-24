@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Book, BookOpen, HandHeart, Heart, HelpCircle, Home, MessageSquare, Clock, Shield, Notebook, LogIn, UserPlus, Sun, Moon, Info, LucideIcon, MoreHorizontal, Calculator, BellRing, Calendar, Map, Hash, Compass } from "lucide-react";
+import { Book, BookOpen, HandHeart, Heart, HelpCircle, Home, MessageSquare, Clock, BookText, Notebook, LogIn, UserPlus, Sun, Moon, Info, LucideIcon, MoreHorizontal, Calculator, BellRing, Calendar, Map, Hash, Compass } from "lucide-react";
 import Logo from "./logo";
 import { useAuth } from "@/contexts/AuthContext";
 import { ExpandableTabs } from "@/components/ui/expandable-tabs";
@@ -27,7 +27,7 @@ export default function Navbar() {
     { name: "NamazVakitleri", href: "/namaz-vakitleri", icon: Clock },
     { name: "Kur'an", href: "/kuran", icon: Book },
     { name: "Hadis", href: "/hadis", icon: BookOpen },
-    { name: "İlmihal", href: "/ilmihal", icon: Shield },
+    { name: "İlmihal", href: "/ilmihal", icon: BookText },
     { name: "Dua", href: "/dua", icon: HandHeart },
     { name: "Diğer Hizmetlerimiz", href: "#", icon: MoreHorizontal, isDropdown: true },
     { name: "Notlarım", href: "/notlarim", icon: Notebook },

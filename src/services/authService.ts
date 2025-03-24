@@ -1,114 +1,180 @@
 // Simplified authentication service for demo purposes
 // In a real app, this would connect to a backend API
 
-interface User {
-  id: string;
-  username: string;
-  name: string;
+import { api } from './apiClient';
+
+export interface User {
+  id: string | number;
   email: string;
-  password?: string; // Made optional with ? since not all User objects need it
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  username?: string;
+  name?: string;
 }
 
-interface LoginCredentials {
+// Extended interface for mock users with password
+interface MockUser extends User {
+  password: string;
+}
+
+export interface LoginCredentials {
   email: string;
   password: string;
 }
 
-interface RegisterCredentials {
-  name: string;
+export interface RegisterCredentials {
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
+
+export interface RegisterResponse {
+  token: string;
+  user: User;
+}
+
+// Define the missing AuthLoginDto interface
+interface AuthLoginDto {
+  token: string;
+  expiresAt: string;
+  user: User;
 }
 
 // Mock user data for demo
-const MOCK_USERS: User[] = [
+const MOCK_USERS: MockUser[] = [
   {
     id: '1',
     username: 'merveeksi',
     name: 'Merve Eksi',
-    email: 'merve@example.com',
-    password: '123merve123!!',
+    password: '123Merve123!!',
+    email: 'merve@eksi.com',
   },
   {
     id: '2',
     username: 'alpgiray',
     name: 'Alp Giray',
-    email: 'alp@example.com',
-    password: '123giray123!!',
+    password: '123Alp123!!',
+    email: 'alp@ustun.com',
+  },
+  {
+    id: '3',
+    username: 'admin',
+    name: 'Admin',
+    password: 'Admin123!',
+    email: 'admin@nurbilgi.com',
   },
 ];
 
-// Get user from local storage
-const getUserFromStorage = (): User | null => {
-  if (typeof window === 'undefined') return null;
-  
-  const userJson = localStorage.getItem('user');
-  return userJson ? JSON.parse(userJson) : null;
+// Token'ı local storage'a kaydet
+const saveToken = (token: string): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('auth_token', token);
 };
 
-// Save user to local storage
+// User'ı local storage'a kaydet
 const saveUserToStorage = (user: User): void => {
   if (typeof window === 'undefined') return;
-  
   localStorage.setItem('user', JSON.stringify(user));
 };
 
-// Remove user from local storage
-const removeUserFromStorage = (): void => {
+// User'ı local storage'dan al
+const getUserFromStorage = (): User | null => {
+  try {
+    if (typeof window === 'undefined') return null;
+    
+    const userJson = localStorage.getItem('user');
+    
+    // userJson null, undefined veya boş string ise null dön
+    if (!userJson) return null;
+    
+    return JSON.parse(userJson);
+  } catch (error) {
+    // JSON parse hatası olursa localStorage'ı temizle ve null dön
+    console.error('Error parsing user from localStorage:', error);
+    localStorage.removeItem('user');
+    return null;
+  }
+};
+
+// Token'ı ve user'ı local storage'dan sil
+const clearStorage = (): void => {
   if (typeof window === 'undefined') return;
-  
+  localStorage.removeItem('auth_token');
   localStorage.removeItem('user');
 };
 
-// Login function (mock implementation)
+// Login
 export const login = async (credentials: LoginCredentials): Promise<User> => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // In a real app, this would validate credentials against a backend
-  // For demo, we'll just return a successful login if email matches
-  const user = MOCK_USERS.find(u => u.email === credentials.email);
-  
-  if (!user) {
-    throw new Error('Kullanıcı adı veya şifre hatalı');
+  try {
+    // API yanıtının yapısına dikkat edin
+    const response = await api.post<{
+      isSuccess: boolean;
+      message: string;
+      data: AuthLoginDto;
+    }>('/auth/login', credentials, false);
+    
+    // If data and token exist, consider it successful regardless of isSuccess flag
+    if (!response || !response.data || !response.data.token || !response.data.user) {
+      throw new Error(response?.message || "Giriş başarısız");
+    }
+    
+    const { token, expiresAt, user } = response.data;
+    
+    // Token ve kullanıcı bilgilerini kaydet
+    saveToken(token);
+    saveUserToStorage(user);
+    
+    return user;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
   }
-  
-  // Save to localStorage
-  saveUserToStorage(user);
-  
-  return user;
 };
 
-// Register function (mock implementation)
+// Register
 export const register = async (credentials: RegisterCredentials): Promise<User> => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Check if user already exists
-  if (MOCK_USERS.some(u => u.email === credentials.email)) {
-    throw new Error('Bu e-posta adresi zaten kullanılıyor');
+  try {
+    const registerData = {
+      firstName: credentials.firstName,
+      lastName: credentials.lastName,
+      email: credentials.email,
+      password: credentials.password
+    };
+    
+    const response = await api.post<RegisterResponse>('/auth/register', registerData, false);
+    
+    // Token ve kullanıcı bilgilerini kaydet
+    saveToken(response.token);
+    saveUserToStorage(response.user);
+    
+    return response.user;
+  } catch (error) {
+    console.error('Register error:', error);
+    throw error;
   }
-  
-  // Create new user (in a real app, this would be done on the backend)
-  const newUser: User = {
-    id: `${MOCK_USERS.length + 1}`,
-    username: credentials.email.split('@')[0],
-    name: credentials.name,
-    email: credentials.email,
-  };
-  
-  // Add to mock users (in a real app, this would be saved in the database)
-  MOCK_USERS.push(newUser);
-  
-  // Save to localStorage
-  saveUserToStorage(newUser);
-  
-  return newUser;
 };
 
-// Logout function
-export const logout = (): void => {
-  removeUserFromStorage();
+// Logout
+export const logout = async (): Promise<void> => {
+  try {
+    // Backend'e logout isteği gönder (varsa)
+    // await api.post('/auth/logout', {});
+    
+    // Local storage'ı temizle
+    clearStorage();
+  } catch (error) {
+    console.error('Logout error:', error);
+    // Hata olsa bile local storage'ı temizle
+    clearStorage();
+    throw error;
+  }
 };
 
 // Get current user
@@ -118,5 +184,19 @@ export const getCurrentUser = (): User | null => {
 
 // Check if user is authenticated
 export const isAuthenticated = (): boolean => {
-  return getUserFromStorage() !== null;
+  try {
+    if (typeof window === 'undefined') return false;
+    
+    const token = localStorage.getItem('auth_token');
+    if (!token) return false;
+    
+    const user = getUserFromStorage();
+    return !!user; // user null değilse true döner
+  } catch (error) {
+    console.error('Error checking authentication status:', error);
+    return false;
+  }
+  
+  const token = localStorage.getItem('auth_token');
+  return !!token && !!getUserFromStorage();
 }; 
