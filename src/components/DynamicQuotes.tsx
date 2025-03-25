@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Copy, Share } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+import { isAuthenticated, getCurrentUser } from '@/services/authService';
 
 // Alıntı tip tanımı
 interface Quote {
@@ -19,6 +21,18 @@ export default function DynamicQuotes() {
   const [fadeIn, setFadeIn] = useState(true);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [shareFeedback, setShareFeedback] = useState(false);
+  
+  // Sonraki/önceki işlemleri izlemek için ref kullanıyoruz
+  const nextActionRef = useRef<'next' | 'prev' | null>(null);
+
+  const isLoggedInRef = useRef(isAuthenticated());
+  const currentUserRef = useRef(getCurrentUser());
+  
+  const loggedIn = isLoggedInRef.current;
+  const currentUser = currentUserRef.current;
+
+  const sessionIdRef = useRef(uuidv4());
+  const sessionId = sessionIdRef.current;
 
   // API'den alıntıları çek
   useEffect(() => {
@@ -55,47 +69,65 @@ export default function DynamicQuotes() {
     
     if (isAutoChanging && quotes.length > 0) {
       interval = setInterval(() => {
-        changeQuote();
+        nextActionRef.current = 'next';
+        setFadeIn(false);
       }, 7000);
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [currentQuoteIndex, isAutoChanging, quotes]);
+  }, [isAutoChanging, quotes.length]);
+
+  // Fade out sonrası state güncellemesi için ayrı bir effect
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (!fadeIn && quotes.length > 0) {
+      timeout = setTimeout(() => {
+        // Önceki mi, sonraki mi işlemine göre index hesapla
+        if (nextActionRef.current === 'prev') {
+          const prevIndex = currentQuoteIndex === 0 
+            ? quotes.length - 1 
+            : currentQuoteIndex - 1;
+          setCurrentQuoteIndex(prevIndex);
+        } else {
+          // Varsayılan olarak "sonraki" işlemi yap
+          const nextIndex = (currentQuoteIndex + 1) % quotes.length;
+          setCurrentQuoteIndex(nextIndex);
+        }
+        
+        // İşlem tamamlandıktan sonra referansı temizle
+        nextActionRef.current = null;
+        setFadeIn(true);
+      }, 500);
+    }
+    
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [fadeIn, currentQuoteIndex, quotes.length]);
 
   // Söz değiştirme fonksiyonu - fade efekti ile
   const changeQuote = () => {
     if (quotes.length === 0) return;
     
+    nextActionRef.current = 'next';
     setFadeIn(false);
-    
-    // Fade out sonrası yeni söz seçme
-    setTimeout(() => {
-      const nextIndex = (currentQuoteIndex + 1) % quotes.length;
-      setCurrentQuoteIndex(nextIndex);
-      setFadeIn(true);
-    }, 500);
   };
 
   // Manuel olarak bir sonraki söze geçme
   const handleNextQuote = () => {
-    changeQuote();
+    if (quotes.length === 0) return;
+    nextActionRef.current = 'next';
+    setFadeIn(false);
   };
 
   // Manuel olarak bir önceki söze geçme
   const handlePrevQuote = () => {
     if (quotes.length === 0) return;
     
+    nextActionRef.current = 'prev';
     setFadeIn(false);
-    
-    setTimeout(() => {
-      const prevIndex = currentQuoteIndex === 0 
-        ? quotes.length - 1 
-        : currentQuoteIndex - 1;
-      setCurrentQuoteIndex(prevIndex);
-      setFadeIn(true);
-    }, 500);
   };
 
   // Otomatik değişimi açma/kapama

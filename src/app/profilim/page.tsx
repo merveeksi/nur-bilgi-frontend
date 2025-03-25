@@ -1,23 +1,60 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { User, Mail, AtSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FullPageLoader } from "@/components/ui/loading";
+import { getCurrentUser, isAuthenticated, Subscription } from '@/services/authService';
+
+// Uygulama özgü kullanıcı tipi
+interface AppUser {
+  id: string; // string olarak tanımlayalım
+  firstName: string;
+  lastName: string;
+  email: string;
+  username?: string;
+  questionCredits?: number;
+  subscription?: Subscription;
+}
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isLoggedIn } = useAuth();
+  const { user: authUser, isLoggedIn } = useAuth();
+  const [user, setUser] = useState<AppUser | null>(null);
 
   // Eğer kullanıcı giriş yapmamışsa, giriş sayfasına yönlendir
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isLoggedIn) {
       router.push("/giris");
     }
   }, [isLoggedIn, router]);
+
+  useEffect(() => {
+    // Kullanıcı giriş yapmamışsa giriş sayfasına yönlendir
+    if (!isAuthenticated()) {
+      router.push('/giris?redirect=profilim');
+      return;
+    }
+    
+    // Kullanıcı bilgilerini al
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      // Kullanıcı tipi dönüşümü
+      const appUser: AppUser = {
+        id: String(currentUser.id), // ID'yi string'e çevirelim
+        firstName: currentUser.firstName || '',
+        lastName: currentUser.lastName || '',
+        email: currentUser.email,
+        username: currentUser.username,
+        questionCredits: currentUser.questionCredits,
+        subscription: currentUser.subscription
+      };
+      setUser(appUser);
+    }
+  }, [router]);
 
   if (!isLoggedIn || !user) {
     return (
@@ -26,6 +63,50 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  // Abonelik planı adını getiren yardımcı fonksiyon
+  const getPlanName = (planId: string): string => {
+    switch (planId) {
+      case 'basic':
+        return 'Temel Plan';
+      case 'premium':
+        return 'Premium Plan';
+      case 'yearly':
+        return 'Yıllık Plan';
+      default:
+        return 'Bilinmeyen Plan';
+    }
+  };
+  
+  // Tarih formatını düzenleyen yardımcı fonksiyon
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('tr-TR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return 'Geçersiz tarih';
+    }
+  };
+  
+  // Kalan gün sayısını hesaplayan yardımcı fonksiyon
+  const getRemainingDays = (endDateString: string): number => {
+    try {
+      const endDate = new Date(endDateString);
+      const today = new Date();
+      
+      // Milisaniye cinsinden farkı hesapla ve günlere çevir
+      const diffTime = endDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      return diffDays > 0 ? diffDays : 0;
+    } catch (error) {
+      return 0;
+    }
+  };
 
   return (
     <section className="py-12">
@@ -44,7 +125,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="text-center md:text-left">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{user.firstName} {user.lastName}</h2>
               <p className="text-gray-500 dark:text-gray-400">Kullanıcı</p>
             </div>
 
@@ -63,7 +144,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-500 dark:text-gray-400">Kullanıcı Adı</h3>
-                  <p className="text-gray-900 dark:text-white">@{user.username}</p>
+                  <p className="text-gray-900 dark:text-white">@{authUser?.username}</p>
                 </div>
               </div>
             </div>

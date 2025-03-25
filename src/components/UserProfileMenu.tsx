@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoading } from "@/contexts/LoadingContext";
-import { User, LogOut, Settings, Bell, Heart } from "lucide-react";
+import { User, LogOut, Settings, Bell, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function UserProfileMenu() {
@@ -94,11 +94,11 @@ export default function UserProfileMenu() {
               Ayarlar
             </button>
             <button
-              onClick={() => handleNavigation("/favorilerim")}
+              onClick={() => handleNavigation("/profilim/uyelik")}
               className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
-              <Heart className="h-4 w-4" />
-              Favorilerim
+              <CreditCard className="h-4 w-4" />
+              Üyelik
             </button>
             <button
               onClick={() => handleNavigation("/bildirimler")}

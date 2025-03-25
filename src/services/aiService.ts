@@ -29,7 +29,7 @@ export const aiService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.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}`
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
           model: "gpt-4", // İslami bilgiye sahip bir model kullanın

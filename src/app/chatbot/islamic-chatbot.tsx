@@ -15,9 +15,22 @@ interface Message {
 interface QuestionStatus {
   remaining: number;
   requiresPremium: boolean;
+  resetTime?: number; // Sıfırlama zamanı için timestamp
 }
 
 export default function IslamicChatbot() {
+  // Sonsuz render döngüsünü önlemek için auth durumunu memoize edelim
+  const isLoggedInRef = useRef(isAuthenticated());
+  const currentUserRef = useRef(getCurrentUser());
+  
+  // Oturum bilgilerini değişkenler olarak kullanıma hazırlayalım
+  const loggedIn = isLoggedInRef.current;
+  const currentUser = currentUserRef.current;
+  
+  // Benzersiz oturum ID'si - sadece bir kez oluşturulur
+  const sessionIdRef = useRef(uuidv4());
+  const sessionId = sessionIdRef.current;
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -28,48 +41,79 @@ export default function IslamicChatbot() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId] = useState(() => uuidv4()); // Oturum için benzersiz ID
   const [questionStatus, setQuestionStatus] = useState<QuestionStatus>({
     remaining: 3,
     requiresPremium: false,
   });
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Kullanıcının giriş yapıp yapmadığını kontrol et
-  const loggedIn = isAuthenticated();
-  const currentUser = getCurrentUser();
 
-  // Başlangıçta veya oturum durumu değiştiğinde soru hakkını kontrol et
+  // Başlangıçta soru hakkını kontrol et - useEffect'i bir kez çalıştıracak şekilde ayarlıyoruz
   useEffect(() => {
-    // localStorage'dan önceki soru sayısını alma
-    const checkRemainingQuestions = () => {
-      try {
-        const key = loggedIn && currentUser 
-          ? `questionCount_${currentUser.id}` 
-          : `questionCount_${sessionId}`;
-          
-        const storedCount = localStorage.getItem(key);
-        const count = storedCount ? parseInt(storedCount, 10) : 0;
+    // localStorage'dan önceki soru sayısını ve sıfırlama zamanını al
+    try {
+      const key = loggedIn && currentUser 
+        ? `questionCount_${currentUser.id}` 
+        : `questionCount_${sessionId}`;
         
-        if (count >= 3) {
+      const storedData = localStorage.getItem(key);
+      
+      // Sadece localStorage'da bir değer varsa state'i güncelle
+      if (storedData !== null) {
+        const data = JSON.parse(storedData);
+        const count = data.count;
+        const resetTime = data.resetTime;
+        const now = Date.now();
+        
+        // 24 saat geçmiş mi kontrol et
+        if (resetTime && now > resetTime) {
+          // 24 saat geçmiş, hakları sıfırla
           setQuestionStatus({
-            remaining: 0,
-            requiresPremium: true
+            remaining: 3,
+            requiresPremium: false,
+            resetTime: now + 24 * 60 * 60 * 1000 // 24 saat sonrası
           });
+          
+          // Yeni değerleri localStorage'a kaydet
+          localStorage.setItem(key, JSON.stringify({
+            count: 0,
+            resetTime: now + 24 * 60 * 60 * 1000
+          }));
         } else {
-          setQuestionStatus({
-            remaining: 3 - count,
-            requiresPremium: false
-          });
+          // 24 saat geçmemiş, mevcut hakları kullan
+          if (count >= 3) {
+            setQuestionStatus({
+              remaining: 0,
+              requiresPremium: true,
+              resetTime: resetTime
+            });
+          } else {
+            setQuestionStatus({
+              remaining: 3 - count,
+              requiresPremium: false,
+              resetTime: resetTime
+            });
+          }
         }
-      } catch (error) {
-        console.error('Soru hakkı kontrol hatası:', error);
+      } else {
+        // İlk kullanım, yeni bir resetTime oluştur
+        const now = Date.now();
+        setQuestionStatus({
+          remaining: 3,
+          requiresPremium: false,
+          resetTime: now + 24 * 60 * 60 * 1000
+        });
+        
+        localStorage.setItem(key, JSON.stringify({
+          count: 0,
+          resetTime: now + 24 * 60 * 60 * 1000
+        }));
       }
-    };
-    
-    checkRemainingQuestions();
-  }, [loggedIn, currentUser, sessionId]);
+    } catch (error) {
+      console.error('Soru hakkı kontrol hatası:', error);
+    }
+  // Boş dependency array ile useEffect'i sadece bir kez çalıştır
+  }, []); 
 
   const handleSendMessage = async () => {
     if (inputValue.trim() === '') return;
@@ -109,6 +153,7 @@ export default function IslamicChatbot() {
           setQuestionStatus({
             remaining: 0,
             requiresPremium: true,
+            resetTime: questionStatus.resetTime
           });
           setError(data.error || 'Premium üyelik gerekiyor');
           
@@ -116,7 +161,10 @@ export default function IslamicChatbot() {
           const key = loggedIn && currentUser 
             ? `questionCount_${currentUser.id}` 
             : `questionCount_${sessionId}`;
-          localStorage.setItem(key, '3'); // 3 soru sormuş kabul et
+          localStorage.setItem(key, JSON.stringify({
+            count: 3,
+            resetTime: questionStatus.resetTime
+          }));
         } else {
           // Diğer hatalar
           setError(data.error || 'Bir hata oluştu');
@@ -138,15 +186,22 @@ export default function IslamicChatbot() {
       
       // Kullanıcı kontenjanlı sorgu statüsünü güncelle
       if (data.questionStatus) {
-        setQuestionStatus(data.questionStatus);
+        const updatedStatus = {
+          ...data.questionStatus,
+          resetTime: questionStatus.resetTime
+        };
+        setQuestionStatus(updatedStatus);
         
         // Geri kalan soru hakkını localStorage'a kaydet
         try {
           const key = loggedIn && currentUser 
             ? `questionCount_${currentUser.id}` 
             : `questionCount_${sessionId}`;
-          const count = 3 - data.questionStatus.remaining;
-          localStorage.setItem(key, count.toString());
+          const count = 3 - updatedStatus.remaining;
+          localStorage.setItem(key, JSON.stringify({
+            count: count,
+            resetTime: questionStatus.resetTime
+          }));
         } catch (err) {
           console.error('Soru sayacı kaydetme hatası:', err);
         }
@@ -164,6 +219,21 @@ export default function IslamicChatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Kalan süreyi hesapla
+  const getTimeRemaining = () => {
+    if (!questionStatus.resetTime) return '';
+    
+    const now = Date.now();
+    const remaining = questionStatus.resetTime - now;
+    
+    if (remaining <= 0) return 'Çok yakında';
+    
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours} saat ${minutes} dakika`;
+  };
+
   return (
     <div className="flex flex-col h-[500px] bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden">
       <div className="bg-emerald-600 dark:bg-emerald-700 text-white p-4">
@@ -174,16 +244,18 @@ export default function IslamicChatbot() {
         {!questionStatus.requiresPremium && (
           <div className="mt-2 text-center text-white/90 text-sm">
             Kalan ücretsiz soru hakkınız: <span className="font-bold">{questionStatus.remaining}</span>
+            <div className="text-xs mt-1">Haklar yenilenecek: {getTimeRemaining()}</div>
           </div>
         )}
         
         {/* Premium üyelik gerektiğini göster */}
         {questionStatus.requiresPremium && (
-          <div className="mt-2 text-center bg-amber-500 text-white p-2 rounded-md text-sm">
+          <div className="mt-2 text-center bg-amber-300 hover:bg-amber-500 text-gray-700 p-2 rounded-md text-sm">
             Ücretsiz soru hakkınız doldu. 
             <Link href="/profilim/uyelik" className="underline font-bold ml-1">
               Premium üyelik satın alın
             </Link>
+            <div className="text-xs mt-1">Haklar yenilenecek: {getTimeRemaining()}</div>
           </div>
         )}
         
@@ -286,7 +358,7 @@ export default function IslamicChatbot() {
           <div className="mt-3 text-center">
             <Link 
               href="/profilim/uyelik" 
-              className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 
+              className="px-4 py-2 bg-amber-300 text-gray-700 rounded-lg hover:bg-amber-500 
               transition-all duration-300 inline-block font-medium"
             >
               Premium Üyelik Satın Al

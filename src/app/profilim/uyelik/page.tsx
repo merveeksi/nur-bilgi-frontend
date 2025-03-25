@@ -3,10 +3,21 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated, getCurrentUser } from '@/services/authService';
+import { isAuthenticated, getCurrentUser, updateUserSubscription } from '@/services/authService';
+import { initiateSubscriptionCheckout } from '@/services/paddlePaymentService';
+
+// Define types for subscription plans
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: string;
+  features: string[];
+  recommended: boolean;
+  period: string;
+}
 
 // Üyelik planları
-const subscriptionPlans = [
+const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'basic',
     name: 'Temel Plan',
@@ -57,7 +68,7 @@ export default function MembershipPage() {
   const isLoggedIn = isAuthenticated();
   const currentUser = getCurrentUser();
   
-  // Ödeme işlemini simüle eden fonksiyon
+  // Ödeme işlemini başlatan fonksiyon
   const handleSubscribe = async () => {
     if (!isLoggedIn) {
       router.push('/giris?redirect=profilim/uyelik');
@@ -66,15 +77,40 @@ export default function MembershipPage() {
     
     setIsProcessing(true);
     
-    // Ödeme entegrasyonu burada yapılacak (Stripe, iyzico, vs.)
-    // Bu örnek için sadece bir gecikme ekleyeceğiz
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      // Convert userId to string to handle any numeric IDs
+      const userIdString = currentUser?.id ? String(currentUser.id) : '';
       
-      // Başarılı ödeme sonrası
-      alert('Üyelik işleminiz başarıyla tamamlandı!');
-      router.push('/chatbot');
-    }, 2000);
+      await initiateSubscriptionCheckout(selectedPlan, {
+        email: currentUser?.email || '',
+        userId: userIdString,
+        name: `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`,
+        onSuccess: (data) => {
+          console.log('Payment successful:', data);
+          
+          // Başarılı ödeme sonrası kullanıcı aboneliğini güncelle
+          const transactionId = data.checkout?.id || `mock-${Date.now()}`;
+          const updated = updateUserSubscription(selectedPlan, transactionId);
+          
+          if (updated) {
+            alert('Üyelik işleminiz başarıyla tamamlandı! Bakiyeniz ve haklarınız güncellendi.');
+          } else {
+            alert('Ödeme başarılı oldu ancak abonelik bilgileriniz güncellenirken bir sorun oluştu. Lütfen müşteri hizmetleri ile iletişime geçin.');
+          }
+          
+          // Kullanıcıyı chatbot sayfasına yönlendir
+          router.push('/chatbot');
+        },
+        onClose: () => {
+          console.log('Checkout closed');
+          setIsProcessing(false);
+        }
+      });
+    } catch (error) {
+      console.error('Error initiating checkout:', error);
+      setIsProcessing(false);
+      alert('Ödeme işlemi başlatılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+    }
   };
   
   if (!isLoggedIn) {

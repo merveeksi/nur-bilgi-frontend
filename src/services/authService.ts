@@ -3,6 +3,15 @@
 
 import { api } from './apiClient';
 
+// Abonelik tipi tanımı
+export interface Subscription {
+  planId: string;
+  transactionId: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+}
+
 export interface User {
   id: string | number;
   email: string;
@@ -11,6 +20,8 @@ export interface User {
   fullName?: string;
   username?: string;
   name?: string;
+  questionCredits?: number;
+  subscription?: Subscription;
 }
 
 // Extended interface for mock users with password
@@ -199,4 +210,65 @@ export const isAuthenticated = (): boolean => {
   
   const token = localStorage.getItem('auth_token');
   return !!token && !!getUserFromStorage();
-}; 
+};
+
+// Kullanıcı abonelik durumunu güncelle
+export function updateUserSubscription(planId: string, transactionId: string): boolean {
+  try {
+    // Mevcut kullanıcı bilgisini al
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      console.error('Kullanıcı bulunamadı');
+      return false;
+    }
+    
+    // Planın detaylarını belirle
+    let subscriptionEndDate: Date;
+    let questionCredits = 0;
+    const now = new Date();
+    
+    switch (planId) {
+      case 'basic':
+        // Temel plan: 1 ay + 50 soru
+        subscriptionEndDate = new Date(now.setMonth(now.getMonth() + 1));
+        questionCredits = 50;
+        break;
+      case 'premium':
+        // Premium plan: 1 ay + 200 soru
+        subscriptionEndDate = new Date(now.setMonth(now.getMonth() + 1));
+        questionCredits = 200;
+        break;
+      case 'yearly':
+        // Yıllık plan: 1 yıl + sınırsız soru
+        subscriptionEndDate = new Date(now.setFullYear(now.getFullYear() + 1));
+        questionCredits = 999999; // "Sınırsız" için yüksek bir değer
+        break;
+      default:
+        console.error('Geçersiz plan ID', planId);
+        return false;
+    }
+    
+    // Kullanıcı bilgilerini güncelle
+    const updatedUser = {
+      ...currentUser,
+      subscription: {
+        planId,
+        transactionId,
+        startDate: new Date().toISOString(),
+        endDate: subscriptionEndDate.toISOString(),
+        status: 'active'
+      },
+      questionCredits,
+      // Diğer abonelik özellikleri burada eklenebilir
+    };
+    
+    // localStorage'da kullanıcı bilgilerini güncelle
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    
+    console.log('Kullanıcı aboneliği güncellendi:', updatedUser);
+    return true;
+  } catch (error) {
+    console.error('Kullanıcı aboneliği güncellenirken hata oluştu:', error);
+    return false;
+  }
+} 
