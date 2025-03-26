@@ -33,6 +33,10 @@ export interface UpdateNoteRequest {
   color?: string;
 }
 
+// Constants
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5204/api';
+const NOTES_ENDPOINT = '/Notes'; // Note the capital 'N' to match your backend route
+
 // Local storage key
 const NOTES_STORAGE_KEY = 'nur_bilgi_notes';
 
@@ -60,74 +64,79 @@ export const NOTE_COLORS = [
 
 /**
  * API İLE İLETİŞİM FONKSİYONLARI
+ * Not: API 404 döndüğü için doğrudan localStorage kullanacağız
  */
 
-// Tüm notları API'den getir
+// Tüm notları getir
 export const getNotes = async (): Promise<Note[]> => {
   try {
-    return await api.get<Note[]>('/notes');
+    // API devre dışı olduğu için doğrudan localStorage kullanıyoruz
+    console.log("Getting notes from localStorage");
+    const notes = getAllNotesFromStorage();
+    console.log(`Found ${notes.length} notes in localStorage`);
+    return notes;
   } catch (error) {
     console.error('Notlar getirilirken hata oluştu:', error);
-    // API başarısız olursa localStorage'a dön
-    return getAllNotesFromStorage();
+    return [];
   }
 };
 
 // ID'ye göre not getir
 export const getNoteById = async (id: string): Promise<Note | undefined> => {
   try {
-    return await api.get<Note>(`/notes/${id}`);
-  } catch (error) {
-    console.log('API erişilemedi, localStorage kullanılıyor', error);
-    // API başarısız olursa localStorage'dan al
+    // API devre dışı olduğu için doğrudan localStorage kullanıyoruz
     const notes = getAllNotesFromStorage();
     return notes.find(note => note.id === id);
+  } catch (error) {
+    console.error('Not getirilirken hata oluştu:', error);
+    return undefined;
   }
 };
 
 // Not oluştur
 export const createNote = async (note: CreateNoteRequest): Promise<Note> => {
   try {
-    return await api.post<Note>('/notes', note);
-  } catch (error) {
-    console.log('API erişilemedi, localStorage kullanılıyor', error);
-    // API başarısız olursa localStorage'a ekle
+    // API devre dışı olduğu için doğrudan localStorage kullanıyoruz
     return addNoteToStorage(note);
+  } catch (error) {
+    console.error('Not oluşturulurken hata oluştu:', error);
+    throw error;
   }
 };
 
 // Not güncelle
 export const updateNote = async (id: string, updates: Partial<UpdateNoteRequest>): Promise<Note | null> => {
   try {
-    return await api.put<Note>(`/notes/${id}`, {
-      id,
-      ...updates
-    });
-  } catch (error) {
-    console.log('API erişilemedi, localStorage kullanılıyor', error);
-    // API başarısız olursa localStorage'da güncelle
+    // API devre dışı olduğu için doğrudan localStorage kullanıyoruz
     return updateNoteInStorage(id, updates);
+  } catch (error) {
+    console.error('Not güncellenirken hata oluştu:', error);
+    return null;
   }
 };
 
 // Not sil
 export const deleteNote = async (id: string): Promise<boolean> => {
   try {
-    await api.delete(`/notes/${id}`);
-    return true;
-  } catch (error) {
-    console.log('API erişilemedi, localStorage kullanılıyor', error);
-    // API başarısız olursa localStorage'dan sil
+    // API devre dışı olduğu için doğrudan localStorage kullanıyoruz
     return deleteNoteFromStorage(id);
+  } catch (error) {
+    console.error('Not silinirken hata oluştu:', error);
+    return false;
   }
 };
 
 // Pin durumunu değiştir
 export const togglePinNote = async (id: string): Promise<Note | null> => {
-  const note = await getNoteById(id);
-  if (!note) return null;
-  
-  return await updateNote(id, { isPinned: !note.isPinned });
+  try {
+    const note = await getNoteById(id);
+    if (!note) return null;
+    
+    return await updateNote(id, { isPinned: !note.isPinned });
+  } catch (error) {
+    console.error('Not sabitlenirken hata oluştu:', error);
+    return null;
+  }
 };
 
 /**
@@ -140,15 +149,70 @@ const getAllNotesFromStorage = (): Note[] => {
   
   try {
     const notesJson = localStorage.getItem(NOTES_STORAGE_KEY);
-    return notesJson ? JSON.parse(notesJson) : [];
+    
+    // Check if we have notes data
+    if (!notesJson) {
+      // Initialize with sample data if empty
+      initializeSampleData();
+      const initialData = localStorage.getItem(NOTES_STORAGE_KEY);
+      return initialData ? JSON.parse(initialData) : [];
+    }
+    
+    const notes = JSON.parse(notesJson);
+    
+    // Ensure all notes have the proper structure (for backward compatibility)
+    return notes.map(ensureNoteStructure);
   } catch (error) {
     console.error('Error loading notes from localStorage:', error);
     return [];
   }
 };
 
+// Ensure note has all required properties
+const ensureNoteStructure = (note: any): Note => {
+  const now = new Date().toISOString();
+  
+  return {
+    id: note.id || crypto.randomUUID(),
+    title: note.title || 'Başlıksız Not',
+    content: note.content || '',
+    category: note.category || DEFAULT_CATEGORIES[0],
+    tags: Array.isArray(note.tags) ? note.tags : [],
+    createdAt: note.createdAt || now,
+    updatedAt: note.updatedAt || now,
+    isPinned: Boolean(note.isPinned),
+    color: note.color || ''
+  };
+};
+
+// Initialize with sample data (only if localStorage is empty)
+const initializeSampleData = (): void => {
+  if (typeof window === 'undefined') return;
+  
+  // Only initialize if no data exists
+  if (localStorage.getItem(NOTES_STORAGE_KEY)) return;
+  
+  const now = new Date().toISOString();
+  
+  const sampleNotes: Note[] = [
+    {
+      id: crypto.randomUUID(),
+      title: 'Hoş Geldiniz',
+      content: '<p>Not alma özelliği ile dini bilgileri ve kişisel notlarınızı düzenli bir şekilde saklayabilirsiniz.</p><p>Bu not örnek olarak oluşturulmuştur, istediğiniz zaman silebilirsiniz.</p>',
+      category: 'Genel',
+      tags: ['merhaba', 'başlangıç'],
+      createdAt: now,
+      updatedAt: now,
+      isPinned: true
+    }
+  ];
+  
+  localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(sampleNotes));
+};
+
 // localStorage'a not ekle
 const addNoteToStorage = (note: CreateNoteRequest): Note => {
+  console.log("Adding new note to localStorage:", note.title);
   const notes = getAllNotesFromStorage();
   const now = new Date().toISOString();
   
@@ -156,7 +220,7 @@ const addNoteToStorage = (note: CreateNoteRequest): Note => {
     id: crypto.randomUUID(),
     title: note.title,
     content: note.content,
-    category: note.category || '',
+    category: note.category || DEFAULT_CATEGORIES[0],
     tags: note.tags || [],
     createdAt: now,
     updatedAt: now,
@@ -165,16 +229,21 @@ const addNoteToStorage = (note: CreateNoteRequest): Note => {
   
   const updatedNotes = [newNote, ...notes];
   saveNotesToStorage(updatedNotes);
+  console.log("New note added successfully with ID:", newNote.id);
   
   return newNote;
 };
 
 // localStorage'daki notu güncelle
 const updateNoteInStorage = (id: string, updates: Partial<Omit<Note, 'id' | 'createdAt'>>): Note | null => {
+  console.log("Updating note in localStorage, ID:", id);
   const notes = getAllNotesFromStorage();
   const noteIndex = notes.findIndex(note => note.id === id);
   
-  if (noteIndex === -1) return null;
+  if (noteIndex === -1) {
+    console.warn("Note not found for update:", id);
+    return null;
+  }
   
   const updatedNote = {
     ...notes[noteIndex],
@@ -184,18 +253,24 @@ const updateNoteInStorage = (id: string, updates: Partial<Omit<Note, 'id' | 'cre
   
   notes[noteIndex] = updatedNote;
   saveNotesToStorage(notes);
+  console.log("Note updated successfully");
   
   return updatedNote;
 };
 
 // localStorage'dan not sil
 const deleteNoteFromStorage = (id: string): boolean => {
+  console.log("Deleting note from localStorage, ID:", id);
   const notes = getAllNotesFromStorage();
   const filteredNotes = notes.filter(note => note.id !== id);
   
-  if (filteredNotes.length === notes.length) return false;
+  if (filteredNotes.length === notes.length) {
+    console.warn("Note not found for deletion:", id);
+    return false;
+  }
   
   saveNotesToStorage(filteredNotes);
+  console.log("Note deleted successfully");
   return true;
 };
 
@@ -205,6 +280,7 @@ const saveNotesToStorage = (notes: Note[]): void => {
   
   try {
     localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+    console.log(`Saved ${notes.length} notes to localStorage`);
     
     // Notların güncellendiğini bildiren olay
     window.dispatchEvent(new CustomEvent('notes-updated'));
@@ -223,86 +299,125 @@ export const filterNotes = async (
   category: string | null = null,
   selectedTags: string[] = []
 ): Promise<Note[]> => {
-  // Önce tüm notları al (API veya localStorage'dan)
-  let notes = await getNotes();
-  
-  // Kategori ile filtrele
-  if (category) {
-    notes = notes.filter(note => note.category === category);
+  try {
+    // Önce tüm notları al
+    let notes = await getNotes();
+    
+    // Kategori ile filtrele
+    if (category) {
+      notes = notes.filter(note => note.category === category);
+    }
+    
+    // Etiketlerle filtrele
+    if (selectedTags.length > 0) {
+      notes = notes.filter(note => 
+        selectedTags.every(tag => note.tags && note.tags.includes(tag))
+      );
+    }
+    
+    // Arama terimiyle filtrele
+    if (searchTerm.trim()) {
+      const searchTermLower = searchTerm.toLowerCase();
+      notes = notes.filter(note => 
+        (note.title && note.title.toLowerCase().includes(searchTermLower)) || 
+        (note.content && note.content.toLowerCase().includes(searchTermLower)) ||
+        (note.tags && note.tags.some(tag => tag.toLowerCase().includes(searchTermLower)))
+      );
+    }
+    
+    return notes;
+  } catch (error) {
+    console.error('Notlar filtrelenirken hata oluştu:', error);
+    return [];
   }
-  
-  // Etiketlerle filtrele
-  if (selectedTags.length > 0) {
-    notes = notes.filter(note => 
-      selectedTags.every(tag => note.tags.includes(tag))
-    );
-  }
-  
-  // Arama terimiyle filtrele
-  if (searchTerm.trim()) {
-    const searchTermLower = searchTerm.toLowerCase();
-    notes = notes.filter(note => 
-      note.title.toLowerCase().includes(searchTermLower) || 
-      note.content.toLowerCase().includes(searchTermLower) ||
-      note.tags.some(tag => tag.toLowerCase().includes(searchTermLower))
-    );
-  }
-  
-  return notes;
 };
 
-// Notları sırala (sabitlenmiş notlar her zaman önce gelir)
+// Notları sıralama
 export const sortNotes = (
-  notes: Note[], 
+  notes: Note[],
   sortBy: 'createdAt' | 'updatedAt' | 'title' = 'updatedAt',
-  sortDirection: 'asc' | 'desc' = 'desc'
+  directionOrSortDirection: 'asc' | 'desc' = 'desc'
 ): Note[] => {
+  if (!notes) return [];
+  
+  // Accept either direction or sortDirection parameter name for backward compatibility
+  const direction = directionOrSortDirection;
+  
+  // Separate pinned and unpinned notes for proper sorting
   const pinnedNotes = notes.filter(note => note.isPinned);
   const unpinnedNotes = notes.filter(note => !note.isPinned);
   
-  const sortedUnpinnedNotes = [...unpinnedNotes].sort((a, b) => {
+  // Sorting function
+  const sortFunction = (a: Note, b: Note) => {
+    let valueA: string | Date;
+    let valueB: string | Date;
+    
     if (sortBy === 'title') {
-      return sortDirection === 'asc' 
-        ? a.title.localeCompare(b.title) 
-        : b.title.localeCompare(a.title);
+      valueA = a.title || '';
+      valueB = b.title || '';
+      return direction === 'asc' 
+        ? valueA.localeCompare(valueB)
+        : valueB.localeCompare(valueA);
     } else {
-      const dateA = new Date(a[sortBy]).getTime();
-      const dateB = new Date(b[sortBy]).getTime();
-      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      // For dates, handle as Date objects
+      valueA = new Date(a[sortBy]);
+      valueB = new Date(b[sortBy]);
+      
+      return direction === 'asc' 
+        ? valueA.getTime() - valueB.getTime()
+        : valueB.getTime() - valueA.getTime();
     }
-  });
+  };
   
-  // Sabitlenmiş notları aynı kriterlerle sırala, ancak ayrı tut
-  const sortedPinnedNotes = [...pinnedNotes].sort((a, b) => {
-    if (sortBy === 'title') {
-      return sortDirection === 'asc' 
-        ? a.title.localeCompare(b.title) 
-        : b.title.localeCompare(a.title);
-    } else {
-      const dateA = new Date(a[sortBy]).getTime();
-      const dateB = new Date(b[sortBy]).getTime();
-      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-    }
-  });
+  // Sort both pinned and unpinned notes
+  const sortedPinnedNotes = [...pinnedNotes].sort(sortFunction);
+  const sortedUnpinnedNotes = [...unpinnedNotes].sort(sortFunction);
   
+  // Return pinned notes first, then unpinned notes
   return [...sortedPinnedNotes, ...sortedUnpinnedNotes];
 };
 
-// Tüm kategorileri al
+/**
+ * METADATA FONKSİYONLARI
+ */
+
+// Tüm kategorileri getir
 export const getAllCategories = async (): Promise<string[]> => {
-  const notes = await getNotes();
-  const categories = new Set(notes.map(note => note.category).filter(Boolean));
-  return Array.from(categories);
+  try {
+    // Önce tüm notları al
+    const notes = await getNotes();
+    
+    // Notlardan benzersiz kategorileri çıkar
+    const uniqueCategories = Array.from(
+      new Set(
+        [
+          ...DEFAULT_CATEGORIES,
+          ...notes.map(note => note.category).filter(Boolean)
+        ]
+      )
+    ).sort();
+    
+    return uniqueCategories;
+  } catch (error) {
+    console.error('Kategoriler alınırken hata oluştu:', error);
+    // Hata durumunda varsayılan kategorileri döndür
+    return DEFAULT_CATEGORIES;
+  }
 };
 
-// Tüm etiketleri al
+// Tüm etiketleri getir
 export const getAllTags = async (): Promise<string[]> => {
-  const notes = await getNotes();
-  const tagsSet = new Set<string>();
-  
-  notes.forEach(note => {
-    note.tags.forEach(tag => tagsSet.add(tag));
-  });
-  
-  return Array.from(tagsSet);
+  try {
+    // Önce tüm notları al
+    const notes = await getNotes();
+    
+    // Tüm notların etiketlerini düzleştir ve benzersiz hale getir
+    const allTags = notes.flatMap(note => note.tags || []);
+    const uniqueTags = Array.from(new Set(allTags)).sort();
+    
+    return uniqueTags;
+  } catch (error) {
+    console.error('Etiketler alınırken hata oluştu:', error);
+    return [];
+  }
 }; 

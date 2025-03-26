@@ -48,10 +48,31 @@ export async function apiRequest<T>(
   }
   
   try {
+    console.log(`Making ${method} request to: ${url}`);
     const response = await fetch(url, options);
     
-    // JSON yanıtı dönüştür
-    const responseData = await response.json();
+    // Log status and URL for debugging
+    console.log(`Response status: ${response.status} for ${url}`);
+    
+    // No content responses (204, 205) won't have JSON
+    if (response.status === 204 || response.status === 205) {
+      return {} as T;
+    }
+    
+    // Attempt to get JSON response
+    let responseData;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        responseData = await response.json();
+      } catch (e) {
+        console.log('Response is not valid JSON, returning empty object');
+        responseData = {};
+      }
+    } else {
+      console.log('Response is not JSON, returning empty object');
+      responseData = {};
+    }
     
     // 200-299 arası status code başarılı kabul edilir
     if (response.ok) {
@@ -59,13 +80,23 @@ export async function apiRequest<T>(
     }
     
     // API hata mesajını kullan veya varsayılan hata mesajı oluştur
-    throw new Error(
-      responseData.message || 
-      responseData.title || 
-      `API isteği başarısız: ${response.status}`
-    );
+    const errorMessage = 
+      responseData?.message || 
+      responseData?.title || 
+      responseData?.error ||
+      `API request failed: ${response.status} ${response.statusText}`;
+    
+    console.error('API error details:', {
+      url,
+      method,
+      status: response.status,
+      statusText: response.statusText,
+      responseData
+    });
+    
+    throw new Error(errorMessage);
   } catch (error) {
-    console.error('API isteği sırasında hata:', error);
+    console.error('API request error:', error);
     throw error;
   }
 }

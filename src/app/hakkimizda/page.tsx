@@ -26,21 +26,37 @@ export default function AboutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage("");
     
-    // Form validation
     if (!formState.name || !formState.email || !formState.message) {
       setErrorMessage("Lütfen gerekli alanları doldurunuz.");
       setIsSubmitting(false);
       return;
     }
 
+    setIsSubmitting(true);
+    setErrorMessage("");
+    setSubmitSuccess(false);
+    
     try {
-      // Simulate API call - replace with actual API endpoint
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formState.name,
+          email: formState.email,
+          subject: formState.subject,
+          content: formState.message,
+        }),
+      });
       
-      // Reset form
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Mesaj gönderilirken bir hata oluştu');
+      }
+      
+      setSubmitSuccess(true);
       setFormState({
         name: "",
         email: "",
@@ -48,10 +64,11 @@ export default function AboutPage() {
         message: ""
       });
       
-      setSubmitSuccess(true);
+      // Reset success message after 5 seconds
       setTimeout(() => setSubmitSuccess(false), 5000);
-    } catch (error) {
-      setErrorMessage("Mesajınız gönderilirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+    } catch (err) {
+      console.error('Mesaj gönderim hatası:', err);
+      setErrorMessage(err instanceof Error ? err.message : 'Bir hata oluştu');
     } finally {
       setIsSubmitting(false);
     }
@@ -140,7 +157,7 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-medium mb-1 text-emerald-500 dark:text-emerald-300">E-posta</h3>
-                  <p className="text-slate-600 dark:text-slate-300 text-lg">iletisim@nurbilgi.com</p>
+                  <p className="text-slate-600 dark:text-slate-300 text-lg">info@nurbilgi.com</p>
                 </div>
               </div>
               

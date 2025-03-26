@@ -42,7 +42,7 @@ export default function IslamicChatbot() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [questionStatus, setQuestionStatus] = useState<QuestionStatus>({
-    remaining: 3,
+    remaining: Infinity,
     requiresPremium: false,
   });
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +50,16 @@ export default function IslamicChatbot() {
 
   // Başlangıçta soru hakkını kontrol et - useEffect'i bir kez çalıştıracak şekilde ayarlıyoruz
   useEffect(() => {
-    // localStorage'dan önceki soru sayısını ve sıfırlama zamanını al
+    // Soru hakkını sınırsız olarak ayarla
+    setQuestionStatus({
+      remaining: Infinity,
+      requiresPremium: false,
+      resetTime: undefined
+    });
+    
+    // localStorage'ı temizle veya devre dışı bırak
+    // Önceki kodu yorum satırına alıyoruz
+    /*
     try {
       const key = loggedIn && currentUser 
         ? `questionCount_${currentUser.id}` 
@@ -112,7 +121,8 @@ export default function IslamicChatbot() {
     } catch (error) {
       console.error('Soru hakkı kontrol hatası:', error);
     }
-  // Boş dependency array ile useEffect'i sadece bir kez çalıştır
+    */
+    // Boş dependency array ile useEffect'i sadece bir kez çalıştır
   }, []); 
 
   const handleSendMessage = async () => {
@@ -148,7 +158,8 @@ export default function IslamicChatbot() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Eğer premium gerekiyorsa
+        // Premium kontrolünü kaldır
+        /*
         if (response.status === 403 && data.requiresPremium) {
           setQuestionStatus({
             remaining: 0,
@@ -166,9 +177,12 @@ export default function IslamicChatbot() {
             resetTime: questionStatus.resetTime
           }));
         } else {
-          // Diğer hatalar
-          setError(data.error || 'Bir hata oluştu');
+        */
+        // Diğer hatalar
+        setError(data.error || 'Bir hata oluştu');
+        /*
         }
+        */
         
         setIsLoading(false);
         return;
@@ -184,6 +198,8 @@ export default function IslamicChatbot() {
 
       setMessages((prev) => [...prev, newBotMessage]);
       
+      // Soru statüsü güncellemesini devre dışı bırak
+      /*
       // Kullanıcı kontenjanlı sorgu statüsünü güncelle
       if (data.questionStatus) {
         const updatedStatus = {
@@ -206,6 +222,7 @@ export default function IslamicChatbot() {
           console.error('Soru sayacı kaydetme hatası:', err);
         }
       }
+      */
     } catch (err) {
       console.error('Chatbot isteği hatası:', err);
       setError('Sunucuyla iletişim sırasında bir hata oluştu.');
@@ -240,7 +257,7 @@ export default function IslamicChatbot() {
         <h3 className="text-2xl font-semibold text-center">İslami Chatbot</h3>
         <p className="text-ml text-white/80 text-center">Dini sorularınızı sorabilirsiniz</p>
         
-        {/* Kalan sorgu hakkını göster */}
+        {/* Soru hakkı bilgisini kaldır
         {!questionStatus.requiresPremium && (
           <div className="mt-2 text-center text-white/90 text-sm">
             Kalan ücretsiz soru hakkınız: <span className="font-bold">{questionStatus.remaining}</span>
@@ -248,16 +265,13 @@ export default function IslamicChatbot() {
           </div>
         )}
         
-        {/* Premium üyelik gerektiğini göster */}
         {questionStatus.requiresPremium && (
           <div className="mt-2 text-center bg-amber-300 hover:bg-amber-500 text-gray-700 p-2 rounded-md text-sm">
             Ücretsiz soru hakkınız doldu. 
-            <Link href="/profilim/uyelik" className="underline font-bold ml-1">
-              Premium üyelik satın alın
-            </Link>
             <div className="text-xs mt-1">Haklar yenilenecek: {getTimeRemaining()}</div>
           </div>
         )}
+        */}
         
         {/* Giriş yapmamış kullanıcılara bilgilendirme */}
         {!loggedIn && (
@@ -324,11 +338,11 @@ export default function IslamicChatbot() {
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Sorunuzu yazın..."
             className="flex-1 p-2 border text-gray-700 border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
-            disabled={isLoading || questionStatus.requiresPremium}
+            disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
-            disabled={isLoading || inputValue.trim() === '' || questionStatus.requiresPremium}
+            disabled={isLoading || inputValue.trim() === ''}
             className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 
             transition-all duration-300 transform hover:scale-105 
             disabled:opacity-50 disabled:cursor-not-allowed
@@ -352,19 +366,6 @@ export default function IslamicChatbot() {
             </svg>
           </button>
         </div>
-        
-        {/* Premium bilgilendirme mesajı */}
-        {questionStatus.requiresPremium && (
-          <div className="mt-3 text-center">
-            <Link 
-              href="/profilim/uyelik" 
-              className="px-4 py-2 bg-amber-300 text-gray-700 rounded-lg hover:bg-amber-500 
-              transition-all duration-300 inline-block font-medium"
-            >
-              Premium Üyelik Satın Al
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   );

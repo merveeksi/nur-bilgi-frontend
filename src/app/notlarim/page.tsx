@@ -55,7 +55,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { 
-  getAllNotes, 
+  getNotes, 
   getAllCategories, 
   getAllTags, 
   filterNotes, 
@@ -86,23 +86,35 @@ export default function NotesPage() {
 
   // Apply filters when search, category, or tags change
   useEffect(() => {
-    const filtered = filterNotes(searchTerm, selectedCategory, selectedTags);
-    const sorted = sortNotes(filtered, sortBy, sortDirection);
-    setNotes(sorted);
+    const applyFilters = async () => {
+      try {
+        const filtered = await filterNotes(searchTerm, selectedCategory, selectedTags);
+        const sorted = sortNotes(filtered, sortBy, sortDirection);
+        setNotes(sorted);
+      } catch (err) {
+        console.error("Error filtering notes:", err);
+      }
+    };
+    
+    applyFilters();
   }, [searchTerm, selectedCategory, selectedTags, sortBy, sortDirection]);
 
-  const refreshData = () => {
-    // Fetch all data
-    const allNotes = getAllNotes();
-    const allCategories = getAllCategories();
-    const allTags = getAllTags();
-    
-    // Sort notes
-    const sorted = sortNotes(allNotes, sortBy, sortDirection);
-    
-    setNotes(sorted);
-    setCategories(allCategories);
-    setTags(allTags);
+  const refreshData = async () => {
+    try {
+      // Fetch all data
+      const allNotes = await getNotes();
+      const allCategories = await getAllCategories();
+      const allTags = await getAllTags();
+      
+      // Sort notes
+      const sorted = sortNotes(allNotes, sortBy, sortDirection);
+      
+      setNotes(sorted);
+      setCategories(allCategories);
+      setTags(allTags);
+    } catch (err) {
+      console.error("Error fetching notes data:", err);
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,13 +143,13 @@ export default function NotesPage() {
     setSortDirection(direction);
   };
 
-  const handleTogglePin = (id: string) => {
-    togglePinNote(id);
+  const handleTogglePin = async (id: string) => {
+    await togglePinNote(id);
     refreshData();
   };
 
-  const handleDeleteNote = (id: string) => {
-    deleteNote(id);
+  const handleDeleteNote = async (id: string) => {
+    await deleteNote(id);
     setConfirmDeleteId(null);
     refreshData();
   };

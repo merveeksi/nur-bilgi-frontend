@@ -38,7 +38,7 @@ import { Label } from "@/components/ui/label";
 
 import {
   getNoteById,
-  addNote,
+  createNote,
   updateNote,
   deleteNote,
   getAllCategories,
@@ -177,19 +177,27 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
 
   // Load note data if editing
   useEffect(() => {
-    // Load categories
-    const allCategories = getAllCategories();
-    setCategories(allCategories);
+    const loadData = async () => {
+      try {
+        // Load categories
+        const allCategories = await getAllCategories();
+        setCategories(allCategories);
 
-    if (!isNew) {
-      const existingNote = getNoteById(id);
-      if (existingNote) {
-        setNote(existingNote);
-      } else {
-        // Note not found, redirect to notes page
-        router.push("/notlarim");
+        if (!isNew) {
+          const existingNote = await getNoteById(id);
+          if (existingNote) {
+            setNote(existingNote);
+          } else {
+            // Note not found, redirect to notes page
+            router.push("/notlarim");
+          }
+        }
+      } catch (error) {
+        console.error("Error loading note data:", error);
       }
-    }
+    };
+
+    loadData();
   }, [id, isNew, router]);
 
   const handleInputChange = (
@@ -268,13 +276,11 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
     try {
       if (isNew) {
         // Create new note
-        const newNote = addNote({
+        const newNote = await createNote({
           title: note.title?.trim() || "Başlıksız Not",
           content: note.content?.trim() || "",
           category: note.category || "Genel",
           tags: note.tags || [],
-          isPinned: note.isPinned || false,
-          color: note.color || ""
         });
 
         setNote(newNote);
@@ -292,7 +298,7 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
         }, 100);
       } else {
         // Update existing note
-        const updatedNote = updateNote(id, {
+        const updatedNote = await updateNote(id, {
           title: note.title?.trim() || "Başlıksız Not",
           content: note.content?.trim() || "",
           category: note.category,
@@ -331,9 +337,9 @@ export default function NotePage({ forceIsNew }: NotePageProps) {
     }
   };
 
-  const handleDeleteNote = () => {
+  const handleDeleteNote = async () => {
     if (id && !isNew) {
-      const success = deleteNote(id);
+      const success = await deleteNote(id);
       if (success) {
         // Redirect to notes page
         router.push("/notlarim");
