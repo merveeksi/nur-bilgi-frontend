@@ -58,4 +58,4 @@ Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır.
 
 ## İletişim
 
-Sorularınız ve önerileriniz için [iletişim formumuzu](https://nur-bilgi.com/contact) kullanabilirsiniz.
+Sorularınız ve önerileriniz için [iletişim formumuzu](https://nur-bilgi.com/contact) kullanabilirsiniz...
