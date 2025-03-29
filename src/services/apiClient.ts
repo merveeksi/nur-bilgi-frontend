@@ -3,12 +3,34 @@
  */
 
 // API URL'ini çevre değişkeninden alıyoruz
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5204/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5204';
 
 // Token local storage'dan alınır
 const getAuthToken = (): string | null => {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('auth_token');
+};
+
+// API hata yanıtını işleme fonksiyonu
+const processApiError = (responseData: any): string => {
+  // API hata mesajını kullan veya varsayılan hata mesajı oluştur
+  if (responseData?.message) {
+    return responseData.message;
+  }
+  
+  // Eğer API errors dizisi döndüyse, ilk hata mesajını al
+  if (responseData?.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+    const firstError = responseData.errors[0];
+    if (firstError.errorMessages && Array.isArray(firstError.errorMessages) && firstError.errorMessages.length > 0) {
+      return firstError.errorMessages[0];
+    }
+    
+    if (firstError.message) {
+      return firstError.message;
+    }
+  }
+  
+  return "Bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
 };
 
 /**
@@ -25,6 +47,7 @@ export async function apiRequest<T>(
   // İstek headers'ı
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json'
   };
   
   // Eğer kimlik doğrulama gerekiyorsa token ekle
@@ -40,10 +63,14 @@ export async function apiRequest<T>(
     method,
     headers,
     credentials: 'include',
+    mode: 'cors'
   };
   
   // Eğer veri varsa ve metot GET değilse, body ekle
   if (data && method !== 'GET') {
+    // DEBUG: İsteğin body'sini ve tam URL'i göster
+    console.log(`${method} ${url}`);
+    console.log(`Request body for ${endpoint}:`, JSON.stringify(data, null, 2));
     options.body = JSON.stringify(data);
   }
   
@@ -65,12 +92,14 @@ export async function apiRequest<T>(
     if (contentType && contentType.includes('application/json')) {
       try {
         responseData = await response.json();
+        // DEBUG: API yanıtını logla (hata ayıklamak için)
+        console.log(`Response data for ${endpoint}:`, JSON.stringify(responseData, null, 2));
       } catch (e) {
         console.log('Response is not valid JSON, returning empty object');
         responseData = {};
       }
     } else {
-      console.log('Response is not JSON, returning empty object');
+      console.log(`Response is not JSON (content-type: ${contentType}), returning empty object`);
       responseData = {};
     }
     
@@ -79,24 +108,21 @@ export async function apiRequest<T>(
       return responseData;
     }
     
-    // API hata mesajını kullan veya varsayılan hata mesajı oluştur
-    const errorMessage = 
-      responseData?.message || 
-      responseData?.title || 
-      responseData?.error ||
-      `API request failed: ${response.status} ${response.statusText}`;
+    // API hata mesajını işle
+    const errorMessage = processApiError(responseData);
     
     console.error('API error details:', {
       url,
       method,
       status: response.status,
       statusText: response.statusText,
-      responseData
+      requestBody: data ? JSON.stringify(data) : null,
+      responseData: JSON.stringify(responseData)
     });
     
     throw new Error(errorMessage);
   } catch (error) {
-    console.error('API request error:', error);
+    console.error(`API request error for ${url}:`, error);
     throw error;
   }
 }

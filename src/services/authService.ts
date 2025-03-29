@@ -30,15 +30,15 @@ interface MockUser extends User {
 }
 
 export interface LoginCredentials {
-  email: string;
-  password: string;
+  Email: string;
+  Password: string;
+  RememberMe?: boolean;
 }
 
 export interface RegisterCredentials {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
+  Email: string;
+  Password: string;
+  FullName: string;
 }
 
 export interface LoginResponse {
@@ -84,15 +84,21 @@ const MOCK_USERS: MockUser[] = [
 ];
 
 // Token'ı local storage'a kaydet
-const saveToken = (token: string): void => {
+const saveToken = (token: string, rememberMe: boolean = false): void => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('auth_token', token);
+  
+  // Use sessionStorage for temporary session, localStorage for "remember me"
+  const storage = rememberMe ? localStorage : sessionStorage;
+  storage.setItem('auth_token', token);
 };
 
 // User'ı local storage'a kaydet
-const saveUserToStorage = (user: User): void => {
+const saveUserToStorage = (user: User, rememberMe: boolean = false): void => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('user', JSON.stringify(user));
+  
+  // Use sessionStorage for temporary session, localStorage for "remember me"
+  const storage = rememberMe ? localStorage : sessionStorage;
+  storage.setItem('user', JSON.stringify(user));
 };
 
 // User'ı local storage'dan al
@@ -100,16 +106,22 @@ const getUserFromStorage = (): User | null => {
   try {
     if (typeof window === 'undefined') return null;
     
-    const userJson = localStorage.getItem('user');
+    // First check localStorage, then sessionStorage
+    let userJson = localStorage.getItem('user');
+    
+    if (!userJson) {
+      userJson = sessionStorage.getItem('user');
+    }
     
     // userJson null, undefined veya boş string ise null dön
     if (!userJson) return null;
     
     return JSON.parse(userJson);
   } catch (error) {
-    // JSON parse hatası olursa localStorage'ı temizle ve null dön
+    // JSON parse hatası olursa storage'ı temizle ve null dön
     console.error('Error parsing user from localStorage:', error);
     localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     return null;
   }
 };
@@ -119,28 +131,52 @@ const clearStorage = (): void => {
   if (typeof window === 'undefined') return;
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user');
+  sessionStorage.removeItem('auth_token');
+  sessionStorage.removeItem('user');
 };
 
 // Login
 export const login = async (credentials: LoginCredentials): Promise<User> => {
   try {
+    // API istek formatını düzenle
+    const requestData = {
+      Email: credentials.Email,
+      Password: credentials.Password,
+      RememberMe: credentials.RememberMe
+    };
+    
+    console.log('Login request data:', JSON.stringify(requestData, null, 2));
+    
     // API yanıtının yapısına dikkat edin
     const response = await api.post<{
       isSuccess: boolean;
       message: string;
       data: AuthLoginDto;
-    }>('/auth/login', credentials, false);
+      errors?: Array<{propertyName: string, errorMessages: string[]}>
+    }>('api/auth/login', requestData, false);
     
-    // If data and token exist, consider it successful regardless of isSuccess flag
-    if (!response || !response.data || !response.data.token || !response.data.user) {
-      throw new Error(response?.message || "Giriş başarısız");
+    console.log('Login response:', response);
+    
+    // API yanıtını kontrol et
+    if (!response.data) {
+      let errorMessage = response.message || "Giriş başarısız";
+      
+      // Eğer detaylı hata mesajları varsa, ilkini ekleyelim
+      if (response.errors && response.errors.length > 0) {
+        const firstError = response.errors[0];
+        if (firstError.errorMessages && firstError.errorMessages.length > 0) {
+          errorMessage += `: ${firstError.errorMessages[0]}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
     
     const { token, expiresAt, user } = response.data;
     
     // Token ve kullanıcı bilgilerini kaydet
-    saveToken(token);
-    saveUserToStorage(user);
+    saveToken(token, credentials.RememberMe);
+    saveUserToStorage(user, credentials.RememberMe);
     
     return user;
   } catch (error) {
@@ -152,20 +188,71 @@ export const login = async (credentials: LoginCredentials): Promise<User> => {
 // Register
 export const register = async (credentials: RegisterCredentials): Promise<User> => {
   try {
-    const registerData = {
-      firstName: credentials.firstName,
-      lastName: credentials.lastName,
-      email: credentials.email,
-      password: credentials.password
+    // Ad soyad, email ve şifre zorunludur, boş değer kontrolü yapalım
+    if (!credentials.FullName?.trim()) {
+      throw new Error("Ad ve soyad gereklidir.");
+    }
+    
+    if (!credentials.Email?.trim()) {
+      throw new Error("E-posta adresi gereklidir.");
+    }
+    
+    if (!credentials.Password?.trim()) {
+      throw new Error("Şifre gereklidir.");
+    }
+    
+    // API istek formatı - validasyonlar için değerleri mutlaka string olarak gönderelim
+    const requestPayload = {
+      request: {
+        Email: credentials.Email.trim(),
+        Password: credentials.Password.trim(),
+        FullName: credentials.FullName.trim()
+      }
     };
     
-    const response = await api.post<RegisterResponse>('/auth/register', registerData, false);
+    console.log('Register request data:', JSON.stringify(requestPayload, null, 2));
     
-    // Token ve kullanıcı bilgilerini kaydet
-    saveToken(response.token);
-    saveUserToStorage(response.user);
-    
-    return response.user;
+    try {
+      const response = await api.post<{
+        isSuccess: boolean;
+        message: string;
+        data: RegisterResponse | null;
+        errors?: Array<{propertyName: string, errorMessages: string[]}>
+      }>('api/auth/register', requestPayload, false);
+
+      console.log('Register response:', JSON.stringify(response, null, 2));
+
+      // API yanıtını kontrol et
+      if (!response.data) {
+        // Hata mesajları
+        let errorMessage = response.message || "Kayıt işlemi başarısız";
+        
+        if (response.errors && response.errors.length > 0) {
+          const errorDetails = response.errors.map(err => 
+            `${err.propertyName}: ${err.errorMessages?.join(', ') || 'Bilinmeyen hata'}`
+          ).join(' | ');
+          
+          errorMessage += `: ${errorDetails}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      // Token ve kullanıcı bilgilerini kaydet
+      if (response.data.token) {
+        saveToken(response.data.token);
+      }
+      
+      if (response.data.user) {
+        saveUserToStorage(response.data.user);
+        return response.data.user;
+      }
+      
+      throw new Error("Kullanıcı bilgileri alınamadı");
+    } catch (apiError) {
+      console.error('API error during registration:', apiError);
+      throw apiError;
+    }
   } catch (error) {
     console.error('Register error:', error);
     throw error;
@@ -271,4 +358,81 @@ export function updateUserSubscription(planId: string, transactionId: string): b
     console.error('Kullanıcı aboneliği güncellenirken hata oluştu:', error);
     return false;
   }
-} 
+}
+
+// Şifre sıfırlama için arayüz
+export interface ForgotPasswordRequest {
+  Email: string;
+}
+
+export interface ResetPasswordRequest {
+  Token: string;
+  NewPassword: string;
+}
+
+// Şifre sıfırlama isteği gönder
+export const forgotPassword = async (email: string): Promise<boolean> => {
+  try {
+    // API istek formatını düzenle
+    const requestData = {
+      request: {
+        Email: email
+      }
+    };
+    
+    console.log('Forgot password request data:', JSON.stringify(requestData, null, 2));
+    
+    // API'ye şifre sıfırlama isteği gönder
+    const response = await api.post<{ 
+      isSuccess: boolean, 
+      message: string,
+      errors?: Array<{propertyName: string, errorMessages: string[]}>
+    }>(
+      'api/auth/forgot-password', 
+      requestData,
+      false
+    );
+    
+    console.log('Forgot password response:', response);
+    
+    // Disregard isSuccess check as we did with login and register
+    return true;
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    throw error;
+  }
+};
+
+// Şifre sıfırlama işlemini tamamla
+export const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+  try {
+    // API istek formatını düzenle
+    const requestData = {
+      request: {
+        Token: token,
+        NewPassword: newPassword
+      }
+    };
+    
+    console.log('Reset password request data:', JSON.stringify(requestData, null, 2));
+    
+    // API'ye yeni şifre gönder
+    const response = await api.post<{ 
+      isSuccess: boolean, 
+      message: string,
+      errors?: Array<{propertyName: string, errorMessages: string[]}>
+    }>(
+      'api/auth/reset-password',
+      requestData,
+      false
+    );
+    
+    console.log('Reset password response:', response);
+    
+    // Disregard isSuccess check as we did with login and register
+    return true;
+  } catch (error) {
+    console.error('Reset password error:', error);
+    throw error;
+  }
+}; 

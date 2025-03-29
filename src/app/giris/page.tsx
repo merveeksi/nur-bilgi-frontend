@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogIn, User, AlertCircle } from "lucide-react";
+import { LogIn, User, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { FullPageLoader } from "@/components/ui/loading";
 
 export default function LoginPage() {
@@ -14,11 +14,13 @@ export default function LoginPage() {
   const { login, error, clearError, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
       router.push("/");
     } catch (error) {
       // Error is handled by the auth context
@@ -64,18 +66,37 @@ export default function LoginPage() {
             disabled={isLoading}
           />
 
-          <Input
-            label="Şifre"
-            type="password"
-            placeholder="Şifrenizi girin"
-            value={password}
-            onChange={(e) => {
-              clearError();
-              setPassword(e.target.value);
-            }}
-            required
-            disabled={isLoading}
-          />
+          <div className="w-full space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Şifre
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Şifrenizi girin"
+                value={password}
+                onChange={(e) => {
+                  clearError();
+                  setPassword(e.target.value);
+                }}
+                required
+                disabled={isLoading}
+                className="flex h-12 w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-emerald-400 pr-10"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2">
@@ -83,6 +104,8 @@ export default function LoginPage() {
                 type="checkbox"
                 className="h-4 w-4 rounded border-gray-300 text-emerald-500"
                 disabled={isLoading}
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
               />
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 Beni hatırla
